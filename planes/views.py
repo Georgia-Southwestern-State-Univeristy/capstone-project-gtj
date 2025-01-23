@@ -1,8 +1,11 @@
 from django.shortcuts import render
+def planes(request):
+    return render(request, 'planes/home.html')
 
-# Create your views here.
+# Create your views here
+# .
 from django.http import HttpResponse
 
 
-def index(request):
+def planes(request):
     return HttpResponse("This is the planes index page.")
