@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div>
+    <form method="GET" id="flightSearch">
+        <div class="input-container">
+            <input type="text" 
+                   id="origin" 
+                   name="origin" 
+                   placeholder="From (e.g., NYC)" 
+                   required 
+                   value="{{ request.GET.origin }}"
+                   autocomplete="off">
+            <div id="originSuggestions" class="suggestions"></div>
+        </div>
+
+        <div class="input-container">
+            <input type="text" 
+                   id="destination" 
+                   name="destination" 
+                   placeholder="To (e.g., LON)" 
+                   required 
+                   value="{{ request.GET.destination }}"
+                   autocomplete="off">
+            <div id="destinationSuggestions" class="suggestions"></div>
+        </div>
+
+        <input type="date" name="departure_date" required value="{{ request.GET.departure_date }}">
+        <input type="date" name="return_date" value="{{ request.GET.return_date }}">
+        <input type="number" name="adults" value="{{ request.GET.adults|default:1 }}" min="1">
+        <button type="submit">Search</button>
+        <button type="submit">Search</button>
+    </form>
+
+    {% if error %}
+        <div style="color: red; margin: 10px 0;">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    {% if flights %}
+        {% for flight in flights %}
+            <div style="margin: 20px 0; padding: 10px; border: 1px solid #ccc;">
+                {% for itinerary in flight.itineraries %}
+                    {% for segment in itinerary.segments %}
+                        <p>From: {{ segment.departure.iataCode }}</p>
+                        <p>To: {{ segment.arrival.iataCode }}</p>
+                        <p>Departure: {{ segment.departure.at }}</p>
+                        <p>Arrival: {{ segment.arrival.at }}</p>
+                        <p>Flight: {{ segment.carrierCode }}{{ segment.number }}</p>
+                    {% endfor %}
+                {% endfor %}
+                <p>Price: {{ flight.price.total }} {{ flight.price.currency }}</p>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+<style>
+    .input-container {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ddd;
+        border-top: none;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+    }
+    
+    .suggestion {
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+    
+    .suggestion:hover {
+        background-color: #f0f0f0;
+    }
+    </style>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const originInput = document.getElementById('origin');
+        const destinationInput = document.getElementById('destination');
+        const originSuggestions = document.getElementById('originSuggestions');
+        const destinationSuggestions = document.getElementById('destinationSuggestions');
+    
+        async function searchAirports(keyword, suggestionBox, input) {
+            if (keyword.length < 2) {
+                suggestionBox.innerHTML = '';
+                return;
+            }
+    
+            try {
+                const response = await fetch(`/planes/search-airports/?keyword=${keyword}`);
+                const data = await response.json();
+                
+                suggestionBox.innerHTML = '';
+                data.forEach(airport => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion';
+                    div.textContent = `${airport.iataCode} - ${airport.name}`;
+                    div.addEventListener('click', () => {
+                        input.value = airport.iataCode;
+                        suggestionBox.innerHTML = '';
+                    });
+                    suggestionBox.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    
+        let debounceTimer;
+        
+        function debounce(func, wait) {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(func, wait);
+        }
+    
+        originInput.addEventListener('input', (e) => {
+            debounce(() => searchAirports(e.target.value, originSuggestions, originInput), 300);
+        });
+    
+        destinationInput.addEventListener('input', (e) => {
+            debounce(() => searchAirports(e.target.value, destinationSuggestions, destinationInput), 300);
+        });
+    
+        // Close suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.input-container')) {
+                originSuggestions.innerHTML = '';
+                destinationSuggestions.innerHTML = '';
+            }
+        });
+    });
+    </script>
+{% endblock %}

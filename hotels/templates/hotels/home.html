@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% block content %}
+<div>
+    <form method="GET" id="hotelSearch">
+        <div class="input-container">
+            <input type="text" 
+                   id="cityCode" 
+                   name="cityCode" 
+                   placeholder="Enter city (e.g., PAR)" 
+                   required 
+                   value="{{ request.GET.cityCode }}"
+                   autocomplete="off">
+            <div id="citySuggestions" class="suggestions"></div>
+        </div>
+
+        <input type="date" 
+               name="checkIn" 
+               required 
+               value="{{ request.GET.checkIn }}">
+        
+        <input type="date" 
+               name="checkOut" 
+               required 
+               value="{{ request.GET.checkOut }}">
+        
+        <input type="number" 
+               name="adults" 
+               value="{{ request.GET.adults|default:1 }}" 
+               min="1">
+        
+        <button type="submit">Search Hotels</button>
+    </form>
+
+    {% if error %}
+        <div style="color: red; margin: 10px 0;">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    {% if hotels %}
+        {% for hotel in hotels %}
+            <div class="hotel-card">
+                <h3>{{ hotel.hotel.name }}</h3>
+                <p>Rating: {{ hotel.hotel.rating }}</p>
+                {% if hotel.offers %}
+                    {% for offer in hotel.offers %}
+                        <div class="room-offer">
+                            <p>Room Type: {{ offer.room.type }}</p>
+                            <p>Price: {{ offer.price.total }} {{ offer.price.currency }}</p>
+                            <p>Description: {{ offer.room.description.text }}</p>
+                            {% if offer.room.amenities %}
+                                <p>Amenities:</p>
+                                <ul>
+                                    {% for amenity in offer.room.amenities %}
+                                        <li>{{ amenity }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<style>
+.hotel-card {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 8px;
+}
+
+.room-offer {
+    margin: 10px 0;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 4px;
+}
+
+.input-container {
+    position: relative;
+    display: inline-block;
+}
+
+.suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.suggestion {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.suggestion:hover {
+    background-color: #f0f0f0;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cityInput = document.getElementById('cityCode');
+    const citySuggestions = document.getElementById('citySuggestions');
+
+    async function searchCities(keyword, suggestionBox, input) {
+        if (keyword.length < 2) {
+            suggestionBox.innerHTML = '';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/hotels/search-cities/?keyword=${keyword}`);
+            const data = await response.json();
+            
+            suggestionBox.innerHTML = '';
+            data.forEach(city => {
+                const div = document.createElement('div');
+                div.className = 'suggestion';
+                div.textContent = `${city.iataCode} - ${city.name}, ${city.address.countryCode}`;
+                div.addEventListener('click', () => {
+                    input.value = city.iataCode;
+                    suggestionBox.innerHTML = '';
+                });
+                suggestionBox.appendChild(div);
+            });
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    let debounceTimer;
+    
+    function debounce(func, wait) {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(func, wait);
+    }
+
+    cityInput.addEventListener('input', (e) => {
+        debounce(() => searchCities(e.target.value, citySuggestions, cityInput), 300);
+    });
+
+    // Close suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.input-container')) {
+            citySuggestions.innerHTML = '';
+        }
+    });
+    // Add this to your template's script section
+document.addEventListener('DOMContentLoaded', function() {
+    // Set minimum dates for check-in and check-out
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const checkIn = document.querySelector('input[name="checkIn"]');
+    const checkOut = document.querySelector('input[name="checkOut"]');
+    
+    // Format date to YYYY-MM-DD
+    const formatDate = (date) => date.toISOString().split('T')[0];
+    
+    checkIn.min = formatDate(today);
+    checkOut.min = formatDate(tomorrow);
+    
+    // Set default values if not already set
+    if (!checkIn.value) {
+        checkIn.value = formatDate(today);
+    }
+    if (!checkOut.value) {
+        checkOut.value = formatDate(tomorrow);
+    }
+    
+    // Update checkOut min date when checkIn changes
+    checkIn.addEventListener('change', function() {
+        const nextDay = new Date(this.value);
+        nextDay.setDate(nextDay.getDate() + 1);
+        checkOut.min = formatDate(nextDay);
+        if (checkOut.value < checkOut.min) {
+            checkOut.value = formatDate(nextDay);
+        }
+    });
+});
+});
+</script>
+{% endblock %}
