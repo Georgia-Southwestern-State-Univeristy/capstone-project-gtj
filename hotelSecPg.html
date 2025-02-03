@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>hotels</title>
+    <link rel="icon" type="image/x-icon" href="./assets/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="../cssFiles/hotelStyle.css">
+
+  </head>
+
+  <body>
+    <header>
+        <div class="logo">GTJGo Logo</div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="flights.html">Flights</a>
+            <a href="hotelSearch.html">Hotels</a>
+            <a href="#">Rentals</a>
+            <a href="#">Favorites</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main>
+            <div class="hotel-card">
+                <img src="hotelPhotos/hotelBed.jpg" alt="Hotel Hankyu Respire Osaka">
+                <div class="hotel-details">
+                    <h2>Hotel Hankyu Respire Osaka</h2>
+                    <p>Kita</p>
+                    <p>Expedia</p>
+                    <p class="price">$152</p>
+                    <button class="view-deal">View Deal</button>
+                </div>
+                <div class="actions">
+                    <button class="favorite"> ❤️ Favorite</button>
+                    <button class="share"> 🔗 Share</button>
+                </div>
+            </div>
+
+            <div class="hotel-card">
+                <img src="hotelPhotos/Reception.jpg" alt="Dormy Inn Premium Osaka Kitahama Hotel">
+                <div class="hotel-details">
+                    <h2>Dormy Inn Premium Osaka Kitahama Hotel</h2>
+                    <p>Chuo</p>
+                    <p>Expedia</p>
+                    <p class="price">$101</p>
+                    <button class="view-deal">View Deal</button>
+                </div>
+                <div class="actions">
+                    <button class="favorite"> ❤️ Favorite</button>
+                    <button class="share"> 🔗 Share</button>
+                </div>
+            </div>
+
+            <div class="hotel-card">
+                <img src="hotelPhotos/luxHotel.jpg" alt="Apa Hotel Higashi Umeda Minami Morimachi Ekimae">
+                <div class="hotel-details">
+                    <h2>Apa Hotel Higashi Umeda Minami Morimachi Ekimae</h2>
+                    <p>Kita</p>
+                    <p>Expedia</p>
+                    <p class="price">$72</p>
+                    <button class="view-deal">View Deal</button>
+                </div>
+                <div class="actions">
+                    <button class="favorite">❤️ Favorite</button>
+                    <button class="share">🔗 Share</button>
+                </div>
+            </div>
+        </main>
+
+        <aside class="filters">
+            <div class="filter-section">
+                <h3>Prices</h3>
+                <label><input type="checkbox"> $25 - $50</label>
+                <label><input type="checkbox"> $51 - $100</label>
+                <label><input type="checkbox"> $101 - $200</label>
+                <label><input type="checkbox" checked> $201 - $300</label>
+                <label><input type="checkbox"> $301 - $400</label>
+                <label><input type="checkbox"> $500+</label>
+                <div class="filter-actions">
+                    <button>Reset</button>
+                    <button>Apply</button>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>Location</h3>
+                <select>
+                    <option>Any Distance</option>
+                    <option>Any Place</option>
+
+                </select>
+                
+                <div class="filter-actions">
+                    <button>Reset</button>
+                    <button>Apply</button>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>Review Score</h3>
+                <button>0+</button>
+                <button>3+</button>
+                <button>5+</button>
+                <button>7+</button>
+                <button>9+</button>
+                <div class="filter-actions">
+                    <button>Reset</button>
+                    <button>Apply</button>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>Hotel Class</h3>
+                <button>1 ⭐</button>
+                <button>2 ⭐</button>
+                <button>3 ⭐</button>
+                <button>4 ⭐</button>
+                <button>5 ⭐</button>
+                <div class="filter-actions">
+                    <button>Reset</button>
+                    <button>Apply</button>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>Amenities</h3>
+                <input type="text" placeholder="Search">
+                <div class="filter-actions">
+                    <button>Reset</button>
+                    <button>Apply</button>
+                </div>
+            </div>
+        </aside>
+    </div>
+  </body>
+</html>
