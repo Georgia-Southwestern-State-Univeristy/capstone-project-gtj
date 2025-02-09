@@ -6,7 +6,6 @@
     <link rel="icon" type="image/x-icon" href="{% static 'main/assets/favicon.ico' %}" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="{% static 'hotels\css\hotelSearch.css' %}" >
     
   </head>
 <div class="header">
@@ -96,10 +95,6 @@
                     {% endfor %}
                 {% endif %}
             </div>
-            <script id="hotel-{{ forloop.counter }}" type="application/json">{{ hotel|json_script }}</script>
-            <button onclick="addToFavorites('HOTEL', JSON.parse(document.getElementById('hotel-{{ forloop.counter }}').textContent))">
-                Add to Favorites
-            </button>
         {% endfor %}
     {% endif %}
 </div>
@@ -189,25 +184,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 });
-function addToFavorites(type, itemData) {
-    fetch('/favorites/add/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}',
-        },
-        body: JSON.stringify({
-            type: type,
-            item_data: itemData
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            alert(data.message);
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
 </script>
 {% endblock %}
