@@ -1,177 +1,25 @@
 {% extends 'base.html' %}
 {% block content %}
-<div>
-    <form method="GET" id="transferSearch">
-        <div class="input-container">
-            <input type="text" 
-                   id="pickupLocation" 
-                   name="pickupLocation" 
-                   placeholder="Enter pickup location (e.g., PAR)" 
-                   required 
-                   value="{{ request.GET.pickupLocation }}"
-                   autocomplete="off">
-            <div id="pickupSuggestions" class="suggestions"></div>
-        </div>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Request a Ride</title>
+</head>
+<body>
+    <h1>Request a Ride</h1>
+    <form method="POST" action="{% url 'transport:ride_list' %}">
+        {% csrf_token %}
+        <label for="airport">Airport:</label>
+        <input type="text" id="airport" name="airport" required><br>
 
-        <div class="input-container">
-            <input type="text" 
-                   id="dropoffLocation" 
-                   name="dropoffLocation" 
-                   placeholder="Enter drop-off location" 
-                   required 
-                   value="{{ request.GET.dropoffLocation }}"
-                   autocomplete="off">
-            <div id="dropoffSuggestions" class="suggestions"></div>
-        </div>
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date" required><br>
 
-        <input type="date" 
-               name="pickupDate" 
-               required 
-               value="{{ request.GET.pickupDate }}">
-        
-        <input type="number" 
-               name="passengers" 
-               value="{{ request.GET.passengers|default:1 }}" 
-               min="1"
-               placeholder="Number of passengers">
-        
-        <button type="submit">Search Transfers</button>
+        <label for="hotel">Hotel:</label>
+        <input type="text" id="hotel" name="hotel" required><br>
+
+        <input type="submit" value="Submit">
     </form>
-
-    {% if error %}
-        <div style="color: red; margin: 10px 0;">
-            {{ error }}
-        </div>
-    {% endif %}
-
-    {% if transfers %}
-        {% for transfer in transfers %}
-            <div class="transfer-card">
-                <div class="vehicle-info">
-                    {% if transfer.vehicle %}
-                        <h3>{{ transfer.vehicle.name }}</h3>
-                        <p>Type: {{ transfer.vehicle.category }}</p>
-                        <p>Seats: {{ transfer.vehicle.seats }}</p>
-                    {% endif %}
-                </div>
-                <div class="service-info">
-                    {% if transfer.service %}
-                        <p>Provider: {{ transfer.service.provider }}</p>
-                        <p>Type: {{ transfer.service.type }}</p>
-                    {% endif %}
-                </div>
-                <div class="price-info">
-                    {% if transfer.price %}
-                        <p class="price">{{ transfer.price.amount }} {{ transfer.price.currency }}</p>
-                        {% if transfer.price.includes %}
-                            <p>Includes: {{ transfer.price.includes|join:", " }}</p>
-                        {% endif %}
-                    {% endif %}
-                </div>
-            </div>
-        {% endfor %}
-    {% endif %}
-</div>
-
-<style>
-.transfer-card {
-    border: 1px solid #ddd;
-    padding: 15px;
-    margin: 15px 0;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.input-container {
-    position: relative;
-    display: inline-block;
-    margin: 10px;
-}
-
-.suggestions {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    border: 1px solid #ddd;
-    border-top: none;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000;
-}
-
-.suggestion {
-    padding: 8px 12px;
-    cursor: pointer;
-}
-
-.suggestion:hover {
-    background-color: #f0f0f0;
-}
-
-.price {
-    font-size: 1.2em;
-    font-weight: bold;
-    color: #2c5282;
-}
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const setupLocationSearch = (inputId, suggestionsId) => {
-        const input = document.getElementById(inputId);
-        const suggestions = document.getElementById(suggestionsId);
-
-        async function searchLocations(keyword, suggestionBox, input) {
-            if (keyword.length < 2) {
-                suggestionBox.innerHTML = '';
-                return;
-            }
-
-            try {
-                const response = await fetch(`/transport/search-locations/?keyword=${keyword}`);
-                const data = await response.json();
-                
-                suggestionBox.innerHTML = '';
-                data.forEach(location => {
-                    const div = document.createElement('div');
-                    div.className = 'suggestion';
-                    div.textContent = `${location.iataCode} - ${location.name}, ${location.address.countryCode}`;
-                    div.addEventListener('click', () => {
-                        input.value = location.iataCode;
-                        suggestionBox.innerHTML = '';
-                    });
-                    suggestionBox.appendChild(div);
-                });
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-
-        let debounceTimer;
-        
-        function debounce(func, wait) {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(func, wait);
-        }
-
-        input.addEventListener('input', (e) => {
-            debounce(() => searchLocations(e.target.value, suggestions, input), 300);
-        });
-    };
-
-    // Setup for both pickup and dropoff locations
-    setupLocationSearch('pickupLocation', 'pickupSuggestions');
-    setupLocationSearch('dropoffLocation', 'dropoffSuggestions');
-
-    // Close suggestions when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.input-container')) {
-            document.getElementById('pickupSuggestions').innerHTML = '';
-            document.getElementById('dropoffSuggestions').innerHTML = '';
-        }
-    });
-});
-</script>
-{% endblock %}
+</body>
+</html>
+{% endblock %}<!-- Path: transport/templates/transport/home.html -->

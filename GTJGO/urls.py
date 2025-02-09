@@ -25,5 +25,6 @@ urlpatterns = [
     path('transport/', include('transport.urls')),
     path('', include('main.urls')), 
     path('destinations/', include('destinations.urls')),
+    path('favorites/', include('favorites.urls')),
     path('api-auth/', include('rest_framework.urls')),
 ]

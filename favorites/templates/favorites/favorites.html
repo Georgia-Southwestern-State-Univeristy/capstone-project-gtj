@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="favorites-container">
+    <h1>Your Favorites</h1>
+
+    <div class="favorites-section">
+        <h2>Flights</h2>
+        {% if flights %}
+            {% for favorite in flights %}
+                <div class="favorite-card">
+                    <div class="favorite-content">
+                        {{ favorite.item_data.departure }} → {{ favorite.item_data.arrival }}
+                        <p>Price: {{ favorite.item_data.price }}</p>
+                    </div>
+                    <button onclick="removeFavorite('{{ favorite.id }}')" class="remove-btn">Remove</button>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No favorite flights yet</p>
+        {% endif %}
+    </div>
+
+    <div class="favorites-section">
+        <h2>Hotels</h2>
+        {% if hotels %}
+            {% for favorite in hotels %}
+                <div class="favorite-card">
+                    <div class="favorite-content">
+                        <h3>{{ favorite.item_data.name }}</h3>
+                        <p>Location: {{ favorite.item_data.location }}</p>
+                    </div>
+                    <button onclick="removeFavorite('{{ favorite.id }}')" class="remove-btn">Remove</button>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No favorite hotels yet</p>
+        {% endif %}
+    </div>
+
+    <div class="favorites-section">
+        <h2>Countries</h2>
+        {% if countries %}
+            {% for favorite in countries %}
+                <div class="favorite-card">
+                    <div class="favorite-content">
+                        <h3>{{ favorite.item_data.name }}</h3>
+                        <p>Region: {{ favorite.item_data.region }}</p>
+                    </div>
+                    <button onclick="removeFavorite('{{ favorite.id }}')" class="remove-btn">Remove</button>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No favorite countries yet</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function removeFavorite(favoriteId) {
+    fetch(`/favorites/remove/${favoriteId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            location.reload();
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+</script>
+
+<style>
+.favorites-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.favorites-section {
+    margin-bottom: 30px;
+}
+
+.favorite-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+}
+
+.remove-btn {
+    padding: 8px 16px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.remove-btn:hover {
+    background-color: #c82333;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,25 @@
+<!-- transport/templates/transport/ride_list.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Available Rides</title>
+</head>
+<body>
+    <h1>Available Rides</h1>
+    <p>Airport: {{ airport }}</p>
+    <p>Date: {{ date }}</p>
+    <p>Hotel: {{ hotel }}</p>
+    
+    <ul>
+        {% for ride in rides %}
+            <li>
+                Driver: {{ ride.driver }}<br>
+                Car: {{ ride.car }}<br>
+                Price: ${{ ride.price }}
+            </li>
+        {% endfor %}
+    </ul>
+    
+    <a href="{% url 'transport:home' %}">Request another ride</a>
+</body>
+</html>

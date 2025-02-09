@@ -1,124 +1,92 @@
 from django.shortcuts import render
+from amadeus import Client, ResponseError
+from django.conf import settings
+from django.http import JsonResponse
 import requests
 
-def country_info(request):
-    # Get query from either the homepage search or the destination page search
-    query = request.GET.get('query') or request.GET.get('country', '')
-    
-    if not query:
-        return render(request, 'destinations/country.html')
-    
+def get_city_coordinates(city_name):
+    """Get latitude and longitude for a city using Google Geocoding API"""
     try:
-        # First try to search for city
-        geocode_response = requests.get(
-            f'https://nominatim.openstreetmap.org/search',
-            params={
-                'q': query,
-                'format': 'json',
-                'addressdetails': 1,
-                'limit': 1
-            },
-            headers={'User-Agent': 'GTJGoApp/1.0'}
-        )
+        url = f"https://maps.googleapis.com/maps/api/geocode/json?address={city_name}&key={settings.GOOGLE_MAPS_API_KEY}"
+        response = requests.get(url)
+        data = response.json()
         
-        city_data = None
-        country_data = None
-        travel_tips = []
-
-        if geocode_response.status_code == 200 and geocode_response.json():
-            city_data = geocode_response.json()[0]
-            country_code = city_data.get('address', {}).get('country_code', '').upper()
-            
-            # Get city details using a travel API (example using RestCountries for country info)
-            if country_code:
-                country_response = requests.get(f'https://restcountries.com/v3.1/alpha/{country_code}')
-                if country_response.status_code == 200:
-                    country_data = country_response.json()[0]
-                    
-                    # Add travel tips based on the country/city
-                    travel_tips = generate_travel_tips(city_data, country_data)
-
-        # If no city found or want to search country directly
-        if not city_data:
-            country_response = requests.get(f'https://restcountries.com/v3.1/name/{query}')
-            if country_response.status_code == 200:
-                country_data = country_response.json()[0]
-                travel_tips = generate_travel_tips(None, country_data)
-        
-        if city_data or country_data:
-            context = {
-                'city': city_data,
-                'country': country_data,
-                'travel_tips': travel_tips,
-                'query': query
-            }
-            return render(request, 'destinations/country.html', context)
-        
-        return render(request, 'destinations/country.html', {
-            'error': f'Could not find information for {query}',
-            'query': query
-        })
-        
+        if data['status'] == 'OK':
+            location = data['results'][0]['geometry']['location']
+            return location['lat'], location['lng']
+        return None, None
     except Exception as e:
-        return render(request, 'destinations/country.html', {
-            'error': f'An error occurred: {str(e)}',
-            'query': query
-        })
+        print(f"Geocoding error: {str(e)}")
+        return None, None
 
-def generate_travel_tips(city_data, country_data):
-    """Generate travel tips based on city and country data"""
-    tips = []
-    
-    if country_data:
-        # Currency tips
-        currencies = country_data.get('currencies', {})
-        for currency in currencies.values():
-            tips.append({
-                'category': 'Currency',
-                'tip': f"The local currency is {currency.get('name')} ({currency.get('symbol')}). "
-                      "It's recommended to have some local currency for small purchases."
-            })
+def city_info(request):
+    amadeus = Client(
+        client_id=settings.AMADEUS_CLIENT_ID,
+        client_secret=settings.AMADEUS_CLIENT_SECRET
+    )
+
+    if request.GET.get('city'):
+        try:
+            city = request.GET.get('city').upper()
+            city_name = request.GET.get('city_name', city)  # For geocoding
             
-        # Language tips
-        languages = country_data.get('languages', {}).values()
-        if languages:
-            lang_list = ', '.join(languages)
-            tips.append({
-                'category': 'Language',
-                'tip': f"The main language(s) spoken are {lang_list}. "
-                      "Consider learning basic greetings and phrases."
+            # Get city coordinates
+            lat, lng = get_city_coordinates(city_name)
+            if lat is None or lng is None:
+                return render(request, 'destinations/city_info.html', {
+                    'error': 'Could not find coordinates for this city'
+                })
+
+            # Points of Interest
+            try:
+                pois = amadeus.reference_data.locations.points_of_interest.get(
+                    latitude=lat,
+                    longitude=lng,
+                    radius=20
+                )
+                points_of_interest = pois.data
+            except ResponseError as e:
+                print(f"POI Error: {str(e)}")
+                points_of_interest = []
+
+            # Tours and Activities
+            try:
+                activities = amadeus.shopping.activities.get(
+                    latitude=lat,
+                    longitude=lng,
+                    radius=20
+                )
+                tours_activities = activities.data
+            except ResponseError as e:
+                print(f"Activities Error: {str(e)}")
+                tours_activities = []
+
+            # Hotels
+            try:
+                hotels = amadeus.reference_data.locations.hotels.by_city.get(
+                    cityCode=city
+                )
+                hotel_list = hotels.data
+            except ResponseError as e:
+                print(f"Hotels Error: {str(e)}")
+                hotel_list = []
+
+            context = {
+                'city': city,
+                'city_name': city_name,
+                'latitude': lat,
+                'longitude': lng,
+                'points_of_interest': points_of_interest,
+                'tours_activities': tours_activities,
+                'hotels': hotel_list,
+                'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY
+            }
+
+            return render(request, 'destinations/city_info.html', context)
+
+        except Exception as e:
+            return render(request, 'destinations/city_info.html', {
+                'error': f"An error occurred: {str(e)}"
             })
 
-    if city_data:
-        # Location tips
-        address = city_data.get('address', {})
-        if address.get('city') and address.get('country'):
-            tips.append({
-                'category': 'Location',
-                'tip': f"Located in {address.get('country')}, {address.get('city')} "
-                      "can be explored through public transportation or guided tours."
-            })
-
-        # Add seasonal tips based on hemisphere
-        lat = float(city_data.get('lat', 0))
-        if lat > 0:
-            tips.append({
-                'category': 'Weather',
-                'tip': "Located in the Northern Hemisphere. Summer is June-August, "
-                      "Winter is December-February."
-            })
-        else:
-            tips.append({
-                'category': 'Weather',
-                'tip': "Located in the Southern Hemisphere. Summer is December-February, "
-                      "Winter is June-August."
-            })
-
-    # Add general travel tips
-    tips.append({
-        'category': 'Safety',
-        'tip': "Keep important documents safe and make digital copies. "
-              "Be aware of your surroundings and keep emergency numbers handy."
-    })
-
-    return tips
+    return render(request, 'destinations/city_info.html')
