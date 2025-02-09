@@ -7,5 +7,10 @@
 
 ---
 <h>**Installation Guide**</h>
+<p>Install on your device:</p>
 
-pip install django djangorestframework amadeus python-dotenv 
+```pip install django djangorestframework amadeus python-dotenv```
+
+<p>To run:</p>
+
+```python manage.py runserver```
