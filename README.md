@@ -23,3 +23,5 @@
 
 ---
 ## Contribution Guidelines
+**Pull Request Process**
+- You may merge the Pull Request, once you have the sign-off of two other developers, or if you do not have permission to do that, you may request the second reviewer to merge it for you.
