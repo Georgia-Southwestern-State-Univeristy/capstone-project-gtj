@@ -1,25 +1,122 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
-<!DOCTYPE html>
-<html>
 <head>
-    <title>Request a Ride</title>
+    <title>GTJ GO! - Transport</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'main/assets/favicon.ico' %}" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
-<body>
-    <h1>Request a Ride</h1>
-    <form method="POST" action="{% url 'transport:ride_list' %}">
+<style>
+    .header {
+        background-color: rgb(249, 181, 172);
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .nav a {
+        margin: 0 20px;
+        text-decoration: none;
+        color: black;
+        font-weight: bold;
+    }
+    .search-container {
+        background-color: rgb(249, 181, 172);
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px;
+    }
+    .search-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: center;
+    }
+    .input-container {
+        position: relative;
+        min-width: 200px;
+    }
+    .search-input {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        width: 100%;
+    }
+    .search-button {
+        padding: 8px 16px;
+        background-color: #333;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .search-button:hover {
+        background-color: #555;
+    }
+</style>
+
+<div class="header">
+    <div>GTJGo Logo</div>
+    <div class="nav">
+        <a href="{% url 'main:home' %}">Home</a>
+        <a href="{% url 'planes:home' %}">Flights</a>
+        <a href="{% url 'hotels:home' %}">Hotels</a>
+        <a href="{% url 'transport:home' %}">Rentals</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'favorites:view_favorites' %}">Favorites</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="search-container">
+    <h2 style="margin-bottom: 20px; color: #333;">Request a Ride</h2>
+    <form method="POST" action="{% url 'transport:ride_list' %}" class="search-form">
         {% csrf_token %}
-        <label for="airport">Airport:</label>
-        <input type="text" id="airport" name="airport" required><br>
+        
+        <div class="input-container">
+            <input type="text" 
+                   id="airport" 
+                   name="airport" 
+                   class="search-input"
+                   placeholder="Enter airport (e.g., JFK)" 
+                   required>
+        </div>
 
-        <label for="date">Date:</label>
-        <input type="date" id="date" name="date" required><br>
+        <div class="input-container">
+            <input type="date" 
+                   id="date" 
+                   name="date" 
+                   class="search-input"
+                   required>
+        </div>
 
-        <label for="hotel">Hotel:</label>
-        <input type="text" id="hotel" name="hotel" required><br>
+        <div class="input-container">
+            <input type="text" 
+                   id="hotel" 
+                   name="hotel" 
+                   class="search-input"
+                   placeholder="Enter hotel name"
+                   required>
+        </div>
 
-        <input type="submit" value="Submit">
+        <button type="submit" class="search-button">Find Available Rides</button>
     </form>
-</body>
-</html>
-{% endblock %}<!-- Path: transport/templates/transport/home.html -->
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.querySelector('input[name="date"]');
+    
+    // Set minimum date to today
+    const today = new Date();
+    const formatDate = (date) => date.toISOString().split('T')[0];
+    
+    dateInput.min = formatDate(today);
+    
+    if (!dateInput.value) {
+        dateInput.value = formatDate(today);
+    }
+});
+</script>
+{% endblock %}
