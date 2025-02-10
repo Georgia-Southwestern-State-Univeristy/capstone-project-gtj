@@ -17,6 +17,8 @@
 
 ```pip install django djangorestframework amadeus python-dotenv```
 
+```pip install psycopg2-binary```
+
 <p>To run:</p>
 
 ```python manage.py runserver```
