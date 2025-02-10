@@ -2,6 +2,7 @@ from django.shortcuts import render
 from amadeus import Client, ResponseError
 from django.conf import settings
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 import requests
 
 def get_city_coordinates(city_name):

@@ -1,126 +1,410 @@
 {% extends 'base.html' %}
 {% load static %}
 {% csrf_token %}
+
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flight Booking</title>
-    <link rel="stylesheet" href="{% static 'planes\css\FlightsFirstPg.css' %}">
-   
-</head>
-<body>
-    <div class="header">
-        <div>GTJGo Logo</div>
-        <div class="nav">
-            <a href="{% url 'main:home' %}">Home</a>
-            <a href="{% url 'planes:home' %}">Flights</a>
-            <a href="{% url 'hotels:home' %}">Hotels</a>
-            <a href="{% url 'transport:home' %}">Rentals</a>
-            {% if user.is_authenticated %}
+<div class="header">
+    <div>GTJGo Logo</div>
+    <div class="nav">
+        <a href="{% url 'main:home' %}">Home</a>
+        <a href="{% url 'hotels:home' %}">Hotels</a>
+        <a href="{% url 'transport:home' %}">Rentals</a>
+        {% if user.is_authenticated %}
             <a href="{% url 'favorites:view_favorites' %}">Favorites</a>
-            {% endif %}
-        </div>
+        {% endif %}
     </div>
-    <div class="container">
-        <h2>Most Affordable Flights to Japan</h2>
-        <div class="trip-type">
-            <div class="active">Roundtrip</div>
-            <div>One-way</div>
-        </div>
-    
-        <form method="GET" id="flightSearch">
-            <div class="input-container">
-                <div class="input-box">
-                    Leaving From
+</div>
+
+<div class="search-container">
+    <h1>Find Your Flight</h1>
+    <form method="GET" id="flightSearch" class="search-form">
+        <div class="form-row">
+            <div class="input-group">
+                <label for="origin">From</label>
+                <div class="input-container">
                     <input type="text" 
                            id="origin" 
                            name="origin" 
-                           placeholder="Enter departure airport" 
+                           placeholder="Enter city (e.g., NYC)" 
                            required 
                            value="{{ request.GET.origin }}"
-                           autocomplete="off">
+                           autocomplete="off"
+                           class="search-input">
                     <div id="originSuggestions" class="suggestions"></div>
                 </div>
-    
-                <div class="input-box">
-                    Going To
+            </div>
+
+            <div class="input-group">
+                <label for="destination">To</label>
+                <div class="input-container">
                     <input type="text" 
                            id="destination" 
                            name="destination" 
-                           placeholder="Enter destination airport" 
+                           placeholder="Enter city (e.g., LON)" 
                            required 
                            value="{{ request.GET.destination }}"
-                           autocomplete="off">
+                           autocomplete="off"
+                           class="search-input">
                     <div id="destinationSuggestions" class="suggestions"></div>
                 </div>
-    
-                <div class="input-box">
-                    Departing
-                    <input type="date" name="departure_date" required value="{{ request.GET.departure_date }}">
-                </div>
-    
-                <div class="input-box">
-                    Returning
-                    <input type="date" name="return_date" value="{{ request.GET.return_date }}">
-                </div>
-    
-                <div class="dropdown" onclick="toggleDropdown('travelersDropdown')">Travelers
-                    <div id="travelersDropdown" class="dropdown-content">
-                        Adults: <input type="number" name="adults" value="{{ request.GET.adults|default:2 }}" min="1"><br>
-                    </div>
-                </div>
-
-    
-                <button type="submit">Search</button>
             </div>
-        </form>
-
-    {% if error %}
-        <div style="color: red; margin: 10px 0;">
-            {{ error }}
         </div>
-    {% endif %}
 
+        <div class="form-row">
+            <div class="input-group">
+                <label for="departure_date">Departure Date</label>
+                <input type="date" 
+                       id="departure_date"
+                       name="departure_date" 
+                       required 
+                       value="{{ request.GET.departure_date }}"
+                       class="date-input">
+            </div>
+
+            <div class="input-group">
+                <label for="return_date">Return Date</label>
+                <input type="date" 
+                       id="return_date"
+                       name="return_date" 
+                       value="{{ request.GET.return_date }}"
+                       class="date-input">
+            </div>
+
+            <div class="input-group">
+                <label for="adults">Passengers</label>
+                <input type="number" 
+                       id="adults"
+                       name="adults" 
+                       value="{{ request.GET.adults|default:1 }}" 
+                       min="1"
+                       max="9"
+                       class="number-input">
+            </div>
+        </div>
+
+        <button type="submit" class="search-button">Search Flights</button>
+    </form>
+</div>
+
+{% if error %}
+    <div class="error-message">
+        {{ error }}
+    </div>
+{% endif %}
+
+<div class="results-container">
     {% if flights %}
         {% for flight in flights %}
             <div class="flight-card">
                 {% for itinerary in flight.itineraries %}
                     {% for segment in itinerary.segments %}
                         <div class="flight-details">
-                            <p>From: {{ segment.departure.iataCode }}</p>
-                            <p>To: {{ segment.arrival.iataCode }}</p>
-                            <p>Departure: {{ segment.departure.at }}</p>
-                            <p>Arrival: {{ segment.arrival.at }}</p>
-                            <p>Flight: {{ segment.carrierCode }}{{ segment.number }}</p>
+                            <div class="route-info">
+                                <div class="location">
+                                    <h3>{{ segment.departure.iataCode }}</h3>
+                                    <p>{{ segment.departure.at|date:"H:i" }}</p>
+                                </div>
+                                <div class="flight-line">
+                                    <span class="airline">{{ segment.carrierCode }}{{ segment.number }}</span>
+                                </div>
+                                <div class="location">
+                                    <h3>{{ segment.arrival.iataCode }}</h3>
+                                    <p>{{ segment.arrival.at|date:"H:i" }}</p>
+                                </div>
+                            </div>
+                            <div class="time-info">
+                                <p>{{ segment.departure.at|date:"D, M d" }}</p>
+                            </div>
                         </div>
                     {% endfor %}
                 {% endfor %}
-                <p class="price">Price: {{ flight.price.total }} {{ flight.price.currency }}</p>
                 
-                <button class="favorite-btn" onclick="addToFavorites('FLIGHT', {
-                    departure: '{{ flight.itineraries.0.segments.0.departure.iataCode }}',
-                    arrival: '{{ flight.itineraries.0.segments.0.arrival.iataCode }}',
-                    departure_time: '{{ flight.itineraries.0.segments.0.departure.at }}',
-                    flight_number: '{{ flight.itineraries.0.segments.0.carrierCode}}{{ flight.itineraries.0.segments.0.number }}',
-                    price: '{{ flight.price.total }} {{ flight.price.currency }}'
-                })">Add to Favorites</button>
+                <div class="flight-footer">
+                    <p class="price">{{ flight.price.total }} {{ flight.price.currency }}</p>
+                    <button onclick='addToFavorites("FLIGHT", {
+                        "departure": "{{ flight.itineraries.0.segments.0.departure.iataCode }}",
+                        "arrival": "{{ flight.itineraries.0.segments.0.arrival.iataCode }}",
+                        "departure_time": "{{ flight.itineraries.0.segments.0.departure.at }}",
+                        "arrival_time": "{{ flight.itineraries.0.segments.0.arrival.at }}",
+                        "flight_number": "{{ flight.itineraries.0.segments.0.carrierCode }}{{ flight.itineraries.0.segments.0.number }}",
+                        "price": "{{ flight.price.total }} {{ flight.price.currency }}"
+                    })' class="favorite-btn">
+                        Add to Favorites
+                    </button>
+                </div>
             </div>
         {% endfor %}
     {% endif %}
 </div>
+
+<style>
+.header {
+    background-color: rgb(249, 181, 172);
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav a {
+    margin: 0 20px;
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+}
+
+.search-container {
+    background-color: rgb(249, 181, 172);
+    padding: 30px;
+    border-radius: 10px;
+    margin: 20px;
+}
+
+.search-container h1 {
+    margin: 0 0 20px 0;
+    color: #333;
+    font-size: 24px;
+}
+
+.search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.input-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+}
+
+.input-container {
+    position: relative;
+}
+
+.search-input,
+.date-input,
+.number-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.suggestion {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.suggestion:hover {
+    background-color: #f5f5f5;
+}
+
+.search-button {
+    padding: 12px 24px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    align-self: flex-start;
+}
+
+.search-button:hover {
+    background-color: #444;
+}
+
+.error-message {
+    color: #dc3545;
+    background-color: #f8d7da;
+    padding: 10px;
+    margin: 20px;
+    border-radius: 5px;
+}
+
+.results-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.flight-card {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.flight-details {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.route-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.location {
+    text-align: center;
+}
+
+.location h3 {
+    margin: 0;
+    font-size: 24px;
+    color: #333;
+}
+
+.location p {
+    margin: 5px 0 0 0;
+    color: #666;
+}
+
+.flight-line {
+    flex: 1;
+    margin: 0 20px;
+    text-align: center;
+    position: relative;
+}
+
+.flight-line::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    border-top: 2px solid #ddd;
+}
+
+.airline {
+    background-color: rgb(249, 181, 172);
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 14px;
+    position: relative;
+}
+
+.time-info {
+    text-align: center;
+    color: #666;
+}
+
+.flight-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.price {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+.favorite-btn {
+    padding: 10px 20px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.favorite-btn:hover {
+    background-color: #444;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+    }
+
+    .input-group {
+        width: 100%;
+    }
+
+    .route-info {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .flight-line {
+        width: 100%;
+        margin: 20px 0;
+    }
+}
+</style>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Airport search functionality
     const originInput = document.getElementById('origin');
     const destinationInput = document.getElementById('destination');
     const originSuggestions = document.getElementById('originSuggestions');
     const destinationSuggestions = document.getElementById('destinationSuggestions');
+    const departureDateInput = document.getElementById('departure_date');
+    const returnDateInput = document.getElementById('return_date');
+
+    // Set minimum dates
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const formatDate = (date) => date.toISOString().split('T')[0];
+    
+    departureDateInput.min = formatDate(today);
+    returnDateInput.min = formatDate(tomorrow);
+    
+    if (!departureDateInput.value) {
+        departureDateInput.value = formatDate(today);
+    }
+    
+    departureDateInput.addEventListener('change', function() {
+        const nextDay = new Date(this.value);
+        nextDay.setDate(nextDay.getDate() + 1);
+        returnDateInput.min = formatDate(nextDay);
+        if (returnDateInput.value && returnDateInput.value < returnDateInput.min) {
+            returnDateInput.value = formatDate(nextDay);
+        }
+    });
 
     async function searchAirports(keyword, suggestionBox, input) {
         if (keyword.length < 2) {
@@ -155,7 +439,6 @@ document.addEventListener('DOMContentLoaded', function() {
         debounceTimer = setTimeout(func, wait);
     }
 
-    // Add airport search listeners
     originInput.addEventListener('input', (e) => {
         debounce(() => searchAirports(e.target.value, originSuggestions, originInput), 300);
     });
@@ -164,41 +447,20 @@ document.addEventListener('DOMContentLoaded', function() {
         debounce(() => searchAirports(e.target.value, destinationSuggestions, destinationInput), 300);
     });
 
-    // Close suggestions when clicking outside
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.input-container')) {
             originSuggestions.innerHTML = '';
             destinationSuggestions.innerHTML = '';
         }
     });
-
-    // Handle dropdowns
-    window.onclick = function(event) {
-        if (!event.target.matches('.dropdown')) {
-            var dropdowns = document.getElementsByClassName("dropdown-content");
-            for (var i = 0; i < dropdowns.length; i++) {
-                var openDropdown = dropdowns[i];
-                if (openDropdown.classList.contains('show')) {
-                    openDropdown.classList.remove('show');
-                }
-            }
-        }
-    };
 });
 
-// Functions that need to be global
-function toggleDropdown(id) {
-    document.getElementById(id).classList.toggle('show');
-}
-
 function addToFavorites(type, itemData) {
-    console.log('Adding to favorites:', {type, itemData});  // Debug log
-    
     fetch('/favorites/add/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
         },
         body: JSON.stringify({
             type: type,
@@ -207,9 +469,8 @@ function addToFavorites(type, itemData) {
     })
     .then(response => response.json())
     .then(data => {
-        console.log('Response:', data);  // Debug log
         if (data.status === 'success') {
-            alert('Added to favorites!');
+            alert(data.message);
         } else {
             alert('Error: ' + data.message);
         }

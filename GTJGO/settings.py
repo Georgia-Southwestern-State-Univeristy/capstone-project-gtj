@@ -20,8 +20,8 @@ load_dotenv()
 
 # Get API key
 FLIGHT_API_KEY = os.getenv('FLIGBlNnzwiDyJeWm1NAoQPAhwl2AiGwj1S9')
-AMADEUS_CLIENT_ID = 'BlNnzwiDyJeWm1NAoQPAhwl2AiGwj1S9'
-AMADEUS_CLIENT_SECRET = '4xnycaub0M9sIEJm'
+AMADEUS_CLIENT_ID = 'GMQLLSj5S4grbHnGZOMG94aVntA7XItg'
+AMADEUS_CLIENT_SECRET = '6IRxX2c8S1skqiVl'
 GOOGLE_MAPS_API_KEY = 'AIzaSyCNLAE1cRaR9QEDZbGabXIXT6gqwS3AVdE'
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'destinations',
     'favorites',
     'rest_framework',
+    'rest_framework_simplejwt',
 
 
 ]
@@ -80,6 +81,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
@@ -96,7 +98,10 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
 }
 
 
@@ -151,9 +156,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static'
-]
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 

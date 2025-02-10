@@ -1,57 +1,163 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+    .header {
+        background-color: rgb(249, 181, 172);
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .nav a {
+        margin: 0 20px;
+        text-decoration: none;
+        color: black;
+        font-weight: bold;
+    }
+    .favorites-container {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 0 20px;
+    }
+    .page-title {
+        color: #333;
+        margin-bottom: 30px;
+        padding: 20px;
+        background-color: rgb(249, 181, 172);
+        border-radius: 10px;
+    }
+    .favorites-section {
+        margin-bottom: 40px;
+    }
+    .section-title {
+        background-color: rgb(249, 181, 172);
+        padding: 15px 20px;
+        border-radius: 10px;
+        color: #333;
+        margin-bottom: 20px;
+    }
+    .favorites-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    .favorite-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+    }
+    .favorite-content {
+        flex-grow: 1;
+    }
+    .favorite-content h3 {
+        color: #333;
+        margin: 0 0 10px 0;
+    }
+    .favorite-content p {
+        color: #666;
+        margin: 5px 0;
+    }
+    .price-info {
+        font-weight: bold;
+        color: #333;
+        margin: 10px 0;
+    }
+    .remove-btn {
+        padding: 8px 16px;
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 15px;
+    }
+    .remove-btn:hover {
+        background-color: #c82333;
+    }
+    .empty-message {
+        padding: 20px;
+        background: white;
+        border-radius: 10px;
+        text-align: center;
+        color: #666;
+    }
+</style>
+
+<div class="header">
+    <div>GTJGo Logo</div>
+    <div class="nav">
+        <a href="{% url 'main:home' %}">Home</a>
+        <a href="{% url 'planes:home' %}">Flights</a>
+        <a href="{% url 'hotels:home' %}">Hotels</a>
+        <a href="{% url 'transport:home' %}">Rentals</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'favorites:view_favorites' %}">Favorites</a>
+        {% endif %}
+    </div>
+</div>
+
 <div class="favorites-container">
-    <h1>Your Favorites</h1>
+    <h1 class="page-title">Your Favorites</h1>
 
     <div class="favorites-section">
-        <h2>Flights</h2>
+        <h2 class="section-title">Flights</h2>
         {% if flights %}
-            {% for favorite in flights %}
-                <div class="favorite-card">
-                    <div class="favorite-content">
-                        {{ favorite.item_data.departure }} → {{ favorite.item_data.arrival }}
-                        <p>Price: {{ favorite.item_data.price }}</p>
+            <div class="favorites-grid">
+                {% for favorite in flights %}
+                    <div class="favorite-card">
+                        <div class="favorite-content">
+                            <h3>{{ favorite.item_data.departure }} → {{ favorite.item_data.arrival }}</h3>
+                            <p class="price-info">Price: {{ favorite.item_data.price }}</p>
+                        </div>
+                        <button onclick="removeFavorite('{{ favorite.id }}')" class="remove-btn">Remove from Favorites</button>
                     </div>
-                    <button onclick="removeFavorite('{{ favorite.id }}')" class="remove-btn">Remove</button>
-                </div>
-            {% endfor %}
+                {% endfor %}
+            </div>
         {% else %}
-            <p>No favorite flights yet</p>
+            <div class="empty-message">No favorite flights yet</div>
         {% endif %}
     </div>
 
     <div class="favorites-section">
-        <h2>Hotels</h2>
+        <h2 class="section-title">Hotels</h2>
         {% if hotels %}
-            {% for favorite in hotels %}
-                <div class="favorite-card">
-                    <div class="favorite-content">
-                        <h3>{{ favorite.item_data.name }}</h3>
-                        <p>Location: {{ favorite.item_data.location }}</p>
+            <div class="favorites-grid">
+                {% for favorite in hotels %}
+                    <div class="favorite-card">
+                        <div class="favorite-content">
+                            <h3>{{ favorite.item_data.name }}</h3>
+                            <p>Location: {{ favorite.item_data.location }}</p>
+                        </div>
+                        <button onclick="removeFavorite('{{ favorite.id }}')" class="remove-btn">Remove from Favorites</button>
                     </div>
-                    <button onclick="removeFavorite('{{ favorite.id }}')" class="remove-btn">Remove</button>
-                </div>
-            {% endfor %}
+                {% endfor %}
+            </div>
         {% else %}
-            <p>No favorite hotels yet</p>
+            <div class="empty-message">No favorite hotels yet</div>
         {% endif %}
     </div>
 
     <div class="favorites-section">
-        <h2>Countries</h2>
+        <h2 class="section-title">Countries</h2>
         {% if countries %}
-            {% for favorite in countries %}
-                <div class="favorite-card">
-                    <div class="favorite-content">
-                        <h3>{{ favorite.item_data.name }}</h3>
-                        <p>Region: {{ favorite.item_data.region }}</p>
+            <div class="favorites-grid">
+                {% for favorite in countries %}
+                    <div class="favorite-card">
+                        <div class="favorite-content">
+                            <h3>{{ favorite.item_data.name }}</h3>
+                            <p>Region: {{ favorite.item_data.region }}</p>
+                        </div>
+                        <button onclick="removeFavorite('{{ favorite.id }}')" class="remove-btn">Remove from Favorites</button>
                     </div>
-                    <button onclick="removeFavorite('{{ favorite.id }}')" class="remove-btn">Remove</button>
-                </div>
-            {% endfor %}
+                {% endfor %}
+            </div>
         {% else %}
-            <p>No favorite countries yet</p>
+            <div class="empty-message">No favorite countries yet</div>
         {% endif %}
     </div>
 </div>
@@ -73,40 +179,4 @@ function removeFavorite(favoriteId) {
     .catch(error => console.error('Error:', error));
 }
 </script>
-
-<style>
-.favorites-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.favorites-section {
-    margin-bottom: 30px;
-}
-
-.favorite-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    margin: 10px 0;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: white;
-}
-
-.remove-btn {
-    padding: 8px 16px;
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.remove-btn:hover {
-    background-color: #c82333;
-}
-</style>
 {% endblock %}
