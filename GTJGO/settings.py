@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'transport',
     'accounts',
     'destinations',
+    'safety',
     'favorites',
     'rest_framework',
     'rest_framework_simplejwt',

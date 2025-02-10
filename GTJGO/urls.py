@@ -29,6 +29,7 @@ urlpatterns = [
     path('transport/', include('transport.urls')),
     path('', include('main.urls')), 
     path('destinations/', include('destinations.urls')),
+    path('safety/', include('safety.urls')),
     path('favorites/', include('favorites.urls')),
     path('api-auth/', include('rest_framework.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
