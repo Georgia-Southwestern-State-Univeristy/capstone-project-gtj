@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Booking</title>
+    <link rel="stylesheet" href="cssFiles/FlightsFirstPg.css">
+   
+</head>
+<body>
+    <div class="header">
+        <div>GTJGo Logo</div>
+        <div class="nav">
+            <a href="index.html">Home</a>
+            <a href="hotelSearch.html">Hotels</a>
+            <a href="#">Rentals</a>
+            <a href="#">Favorites</a>
+        </div>
+    </div>
+    <div class="container">
+        <h2>Most Affordable Flights to Japan</h2>
+        <div class="trip-type">
+            <div class="active">Roundtrip</div>
+            <div>One-way</div>
+        </div>
+        <div class="input-box">Leaving From <strong>Insert destination (local airport)</strong></div>
+        
+        <div class="input-box">Going To <strong>Insert destination (local airport)</strong></div>
+        <div class="input-box">Departing <strong>Feb 8</strong></div>
+        <div class="input-box">Returning <strong>Mar 5</strong></div>
+        <div class="dropdown" onclick="toggleDropdown('travelersDropdown')">Travelers</div>
+        <div id="travelersDropdown" class="dropdown-content">
+            Adults: 2<br>
+            Children: 1<br>
+            Infants: 0<br>
+        </div>
+        <div class="dropdown" onclick="toggleDropdown('classDropdown')">Class</div>
+        <div id="classDropdown" class="dropdown-content">
+            Economy<br>
+            Economy Premium<br>
+            Business<br>
+            First<br>
+        </div>
+    </div>
+    <script>
+        function toggleDropdown(id) {
+            document.getElementById(id).classList.toggle("show");
+        }
+        window.onclick = function(event) {
+            if (!event.target.matches('.dropdown')) {
+                document.querySelectorAll('.dropdown-content').forEach(function(dropdown) {
+                    dropdown.classList.remove('show');
+                });
+            }
+        }
+    </script>
+</body>
+</html> 
