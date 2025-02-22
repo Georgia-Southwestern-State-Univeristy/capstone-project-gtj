@@ -15,17 +15,17 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
-# Load environment variables
-load_dotenv()
-
-# Get API key
-FLIGHT_API_KEY = os.getenv('FLIGBlNnzwiDyJeWm1NAoQPAhwl2AiGwj1S9')
-AMADEUS_CLIENT_ID = 'GMQLLSj5S4grbHnGZOMG94aVntA7XItg'
-AMADEUS_CLIENT_SECRET = '6IRxX2c8S1skqiVl'
-GOOGLE_MAPS_API_KEY = 'AIzaSyCNLAE1cRaR9QEDZbGabXIXT6gqwS3AVdE'
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables
+load_dotenv(BASE_DIR / '.env')
+
+# Get API key
+FLIGHT_API_KEY = os.getenv('FLIGBlNnzwiDyJeWm1NAoQPAhwl2AiGwj1S9')
+AMADEUS_CLIENT_ID='GdH3ofGRmiF0qRy0S9ohF6XG4uE5AFni'
+AMADEUS_CLIENT_SECRET='k9SC7UgFGyCapLGP'
+GOOGLE_MAPS_API_KEY='AIzaSyCNLAE1cRaR9QEDZbGabXIXT6gqwS3AVdE'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
