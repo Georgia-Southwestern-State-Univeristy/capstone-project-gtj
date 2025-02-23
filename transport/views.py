@@ -1,68 +1,85 @@
+# transport/views.py
+
 from django.shortcuts import render
-from django.db.models import Prefetch
-from .models import City, TransitPass, TransitLine, TransitStation
+from django.http import JsonResponse
+from django.conf import settings
+import requests
+from hotels.cache_utils import api_cache  # Using the same cache utility
+import logging
+
+logger = logging.getLogger(__name__)
 
 def home(request):
+    """Home view for transport app"""
     return render(request, 'transport/home.html')
 
-def search_transit(request):
-    city_query = request.GET.get('city', '').strip()
-    
-    if city_query:
-        try:
-            # Get city and all related transit information
-            city = City.objects.prefetch_related(
-                'transit_passes',
-                'transit_lines',
-                Prefetch(
-                    'transit_lines__stations',
-                    queryset=TransitStation.objects.filter(accessibility=True)
-                )
-            ).get(name__iexact=city_query)
+@api_cache.cached_api_call('transport_options')
+def get_transport_options(request):
+    """Get available transport options for a city"""
+    try:
+        city = request.GET.get('city', '').strip()
+        
+        # Get city coordinates
+        geocode_url = "https://maps.googleapis.com/maps/api/geocode/json"
+        params = {
+            'address': city,
+            'key': settings.GOOGLE_MAPS_API_KEY
+        }
+        
+        geocode_response = requests.get(geocode_url, params=params)
+        location_data = geocode_response.json()
+        
+        if location_data['status'] == 'OK':
+            location = location_data['results'][0]['geometry']['location']
             
-            # Organize transit lines by type
-            transit_types = {}
-            for line in city.transit_lines.all():
-                type_name = line.get_line_type_display()
-                if type_name not in transit_types:
-                    transit_types[type_name] = {
-                        'lines': [],
-                        'icon': get_transit_icon(line.line_type)  # Helper function to get icon
-                    }
-                transit_types[type_name]['lines'].append(line)
-            
-            # Organize passes by type
-            passes = {}
-            for pass_obj in city.transit_passes.all():
-                type_name = pass_obj.get_pass_type_display()
-                if type_name not in passes:
-                    passes[type_name] = []
-                passes[type_name].append(pass_obj)
-            
-            context = {
-                'city': city,
-                'transit_types': transit_types,
-                'passes': passes,
-                'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY,
+            # Get transit stations
+            places_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+            transit_params = {
+                'location': f"{location['lat']},{location['lng']}",
+                'radius': '5000',
+                'type': 'transit_station',
+                'key': settings.GOOGLE_MAPS_API_KEY
             }
             
-            return render(request, 'transport/search_results.html', context)
+            places_response = requests.get(places_url, params=transit_params)
+            transit_data = places_response.json()
             
-        except City.DoesNotExist:
-            return render(request, 'transport/home.html', {
-                'error': f"Sorry, we don't have transit information for {city_query} yet."
+            return JsonResponse({
+                'city': location_data['results'][0]['formatted_address'],
+                'location': location,
+                'stations': transit_data.get('results', [])
             })
-    
-    return render(request, 'transport/home.html')
+            
+        return JsonResponse({'error': 'City not found'}, status=404)
+        
+    except Exception as e:
+        logger.error(f"Transport API error: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
 
-def get_transit_icon(transit_type):
-    """Helper function to return appropriate icon class for each transit type"""
-    icons = {
-        'METRO': 'subway',
-        'BUS': 'bus',
-        'TRAM': 'train',
-        'TRAIN': 'train',
-        'FERRY': 'ship',
-        'BIKE': 'bicycle',
-    }
-    return icons.get(transit_type, 'question-circle')
+@api_cache.cached_api_call('transport_routes')
+def get_routes(request):
+    """Get transit routes between two points"""
+    try:
+        origin = request.GET.get('origin')
+        destination = request.GET.get('destination')
+        
+        # Validate inputs
+        if not all([origin, destination]):
+            return JsonResponse({'error': 'Origin and destination are required'}, status=400)
+            
+        # Get transit directions
+        directions_url = "https://maps.googleapis.com/maps/api/directions/json"
+        params = {
+            'origin': origin,
+            'destination': destination,
+            'mode': 'transit',
+            'alternatives': 'true',
+            'key': settings.GOOGLE_MAPS_API_KEY
+        }
+        
+        response = requests.get(directions_url, params=params)
+        return JsonResponse(response.json())
+        
+    except Exception as e:
+        logger.error(f"Routes API error: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
