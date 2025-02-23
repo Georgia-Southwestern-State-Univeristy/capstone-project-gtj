@@ -91,3 +91,76 @@ def city_info(request):
             })
 
     return render(request, 'destinations/city_info.html')
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.conf import settings
+import requests
+from common.cache_utils import api_cache
+import logging
+
+logger = logging.getLogger(__name__)
+
+@api_cache.cached_api_call('city_info', timeout=86400)  # Cache for 24 hours
+def get_city_info(request):
+    try:
+        city = request.GET.get('city', '').strip()
+        
+        # Get city coordinates
+        geocode_url = f"https://maps.googleapis.com/maps/api/geocode/json"
+        params = {
+            'address': city,
+            'key': settings.GOOGLE_MAPS_API_KEY
+        }
+        
+        geocode_response = requests.get(geocode_url, params=params)
+        location_data = geocode_response.json()
+        
+        if location_data['status'] == 'OK':
+            location = location_data['results'][0]['geometry']['location']
+            
+            # Get points of interest
+            places_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+            poi_params = {
+                'location': f"{location['lat']},{location['lng']}",
+                'radius': '5000',
+                'type': 'tourist_attraction',
+                'key': settings.GOOGLE_MAPS_API_KEY
+            }
+            
+            places_response = requests.get(places_url, params=poi_params)
+            poi_data = places_response.json()
+            
+            return JsonResponse({
+                'city': location_data['results'][0]['formatted_address'],
+                'location': location,
+                'points_of_interest': poi_data['results']
+            })
+            
+    except Exception as e:
+        logger.error(f"City info error: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=400)
+
+@api_cache.cached_api_call('weather', timeout=1800)  # Cache for 30 minutes
+def get_weather(request):
+    try:
+        lat = request.GET.get('lat')
+        lon = request.GET.get('lon')
+        
+        # Get weather data
+        weather_url = "https://api.openweathermap.org/data/2.5/weather"
+        params = {
+            'lat': lat,
+            'lon': lon,
+            'appid': settings.OPENWEATHER_API_KEY,
+            'units': 'metric'
+        }
+        
+        response = requests.get(weather_url, params=params)
+        return JsonResponse(response.json())
+        
+    except Exception as e:
+        logger.error(f"Weather error: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=400)
+
+def city_info(request):
+    return render(request, 'destinations/city_info.html')
