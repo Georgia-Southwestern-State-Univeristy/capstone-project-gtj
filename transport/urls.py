@@ -7,6 +7,7 @@ app_name = 'transport'
 
 urlpatterns = [
     path('', views.home, name='home'),
-    path('options/', views.get_transport_options, name='transport_options'),
+    path('search-transport/', views.search_transport, name='search_transport'),
     path('routes/', views.get_routes, name='transport_routes'),
+    path('stations/', views.get_transit_stations, name='transport_stations'),
 ]
