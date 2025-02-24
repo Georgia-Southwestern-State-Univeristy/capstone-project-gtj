@@ -18,7 +18,7 @@
 
     <div class="search-container">
         <h1>Find Public Transportation</h1>
-        <form method="GET" action="{% url 'transport:search_transit' %}" class="search-form">
+        <form method="GET" action="{% url 'transport:search_transport' %}" class="search-form">
             <div class="input-container">
                 <input type="text" 
                        name="city" 
@@ -30,135 +30,117 @@
         </form>
     </div>
 
-    {% if error %}
-        <div class="error-message">
-            {{ error }}
-        </div>
-    {% endif %}
-
-    {% if transport_types %}
-        <div class="results-container">
-            {% for transport in transport_types %}
-                <div class="transport-card">
-                    <h2>{{ transport.get_type_display }}</h2>
-                    <h3>{{ transport.name }}</h3>
-                    <p>{{ transport.description }}</p>
-                    <div class="transport-details">
-                        <p><strong>Operating Hours:</strong> {{ transport.operating_hours }}</p>
-                        <p><strong>Price Info:</strong> {{ transport.price_info }}</p>
-                        {% if transport.website %}
-                            <a href="{{ transport.website }}" target="_blank" class="website-link">Official Website</a>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-
-        {% if stations %}
-            <div class="map-container">
-                <h2>Nearby Stations</h2>
-                <div id="map" style="height: 400px;"></div>
+    <div class="info-container">
+        <h2>Available Transportation Options</h2>
+        <div class="transport-types">
+            <div class="transport-type">
+                <img src="{% static 'transport/icons/subway.png' %}" alt="Subway" class="transport-icon">
+                <h3>Subway/Metro</h3>
+                <p>Find subway and metro stations in your destination city</p>
             </div>
-        {% endif %}
-    {% endif %}
+            <div class="transport-type">
+                <img src="{% static 'transport/icons/train.png' %}" alt="Train" class="transport-icon">
+                <h3>Trains</h3>
+                <p>Locate train stations and railway connections</p>
+            </div>
+            <div class="transport-type">
+                <img src="{% static 'transport/icons/bus.png' %}" alt="Bus" class="transport-icon">
+                <h3>Bus Stations</h3>
+                <p>Find local and intercity bus stations</p>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
-.transport-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
+    .transport-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
 
-.search-container {
-    background-color: rgb(249, 181, 172);
-    padding: 20px;
-    border-radius: 10px;
-    margin: 20px 0;
-    text-align: center;
-}
+    .header {
+        background-color: rgb(249, 181, 172);
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
 
-.search-form {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    align-items: center;
-}
+    .nav a {
+        margin: 0 15px;
+        text-decoration: none;
+        color: black;
+        font-weight: bold;
+    }
 
-.search-input {
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    width: 300px;
-}
+    .search-container {
+        background-color: rgb(249, 181, 172);
+        padding: 30px;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 30px;
+    }
 
-.search-button {
-    padding: 10px 20px;
-    background-color: #333;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
+    .search-form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        max-width: 500px;
+        margin: 0 auto;
+    }
 
-.transport-card {
-    background-color: white;
-    border-radius: 10px;
-    padding: 20px;
-    margin: 20px 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
+    .input-container {
+        flex: 1;
+    }
 
-.transport-details {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid #eee;
-}
+    .search-input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+    }
 
-.website-link {
-    display: inline-block;
-    padding: 5px 10px;
-    background-color: #007bff;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    margin-top: 10px;
-}
+    .search-button {
+        padding: 12px 24px;
+        background-color: #333;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
 
-.error-message {
-    background-color: #fee;
-    color: #c00;
-    padding: 10px;
-    border-radius: 5px;
-    margin: 20px 0;
-}
+    .transport-types {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .transport-type {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .transport-icon {
+        width: 64px;
+        height: 64px;
+        margin-bottom: 15px;
+    }
+
+    h1, h2 {
+        margin-bottom: 20px;
+    }
+
+    h3 {
+        margin: 10px 0;
+    }
 </style>
-
-{% if stations %}
-<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}"></script>
-<script>
-function initMap() {
-    const map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 12,
-        center: { 
-            lat: {{ stations.first.latitude|stringformat:"f" }}, 
-            lng: {{ stations.first.longitude|stringformat:"f" }} 
-        }
-    });
-
-    {% for station in stations %}
-        new google.maps.Marker({
-            position: { 
-                lat: {{ station.latitude|stringformat:"f" }}, 
-                lng: {{ station.longitude|stringformat:"f" }} 
-            },
-            map: map,
-            title: "{{ station.name }}"
-        });
-    {% endfor %}
-}
-
-window.onload = initMap;
-</script>
-{% endif %}
 {% endblock %}

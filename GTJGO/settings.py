@@ -15,7 +15,15 @@ ALLOWED_HOSTS = []
 # API Credentials
 AMADEUS_CLIENT_ID = config('AMADEUS_CLIENT_ID', default='')
 AMADEUS_CLIENT_SECRET = config('AMADEUS_CLIENT_SECRET', default='')
+
 GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY', default='')
+
+GOOGLE_MAPS_LIBRARIES = [
+    'places',    # For transit station search
+    'geometry',  # For distance calculations
+    'directions' # For route planning
+]
+
 
 # Application definition
 INSTALLED_APPS = [
