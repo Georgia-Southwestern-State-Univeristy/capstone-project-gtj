@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="transport-container">
+    <div class="header">
+        <div>GTJGo Logo</div>
+        <div class="nav">
+            <a href="{% url 'main:home' %}">Home</a>
+            <a href="{% url 'planes:home' %}">Flights</a>
+            <a href="{% url 'hotels:home' %}">Hotels</a>
+            <a href="{% url 'transport:home' %}">Transport</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'favorites:view_favorites' %}">Favorites</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="search-container">
+        <h1>Public Transportation in {{ city }}</h1>
+        <form method="GET" action="{% url 'transport:search_transport' %}" class="search-form">
+            <div class="input-container">
+                <input type="text" 
+                       name="city" 
+                       placeholder="Enter city name" 
+                       value="{{ request.GET.city }}"
+                       required 
+                       class="search-input">
+            </div>
+            <button type="submit" class="search-button">Update Search</button>
+        </form>
+    </div>
+
+    {% if error %}
+        <div class="error-message">{{ error }}</div>
+    {% endif %}
+
+    {% if stations %}
+        <div class="results-container">
+            <!-- Map Section First -->
+            <div class="map-section">
+                <h2>Transit Stations Map</h2>
+                <div id="map" class="map-container"></div>
+            </div>
+
+            <!-- Subway Stations -->
+            {% if stations.subway %}
+                <div class="station-section">
+                    <h2>
+                        <i class="fas fa-subway"></i>
+                        Subway/Metro Stations
+                    </h2>
+                    <div class="stations-grid">
+                        {% for station in stations.subway %}
+                            <div class="station-card">
+                                <h3>{{ station.name }}</h3>
+                                <p>{{ station.address }}</p>
+                                {% if station.rating != 'N/A' %}
+                                    <div class="rating">
+                                        <span class="stars">★</span>
+                                        {{ station.rating|floatformat:1 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Train Stations -->
+            {% if stations.train %}
+                <div class="station-section">
+                    <h2>
+                        <i class="fas fa-train"></i>
+                        Train Stations
+                    </h2>
+                    <div class="stations-grid">
+                        {% for station in stations.train %}
+                            <div class="station-card">
+                                <h3>{{ station.name }}</h3>
+                                <p>{{ station.address }}</p>
+                                {% if station.rating != 'N/A' %}
+                                    <div class="rating">
+                                        <span class="stars">★</span>
+                                        {{ station.rating|floatformat:1 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Bus Stations -->
+            {% if stations.bus %}
+                <div class="station-section">
+                    <h2>
+                        <i class="fas fa-bus"></i>
+                        Bus Stations
+                    </h2>
+                    <div class="stations-grid">
+                        {% for station in stations.bus %}
+                            <div class="station-card">
+                                <h3>{{ station.name }}</h3>
+                                <p>{{ station.address }}</p>
+                                {% if station.rating != 'N/A' %}
+                                    <div class="rating">
+                                        <span class="stars">★</span>
+                                        {{ station.rating|floatformat:1 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="no-results">
+            <h2>No transit stations found</h2>
+            <p>Try searching for a different city or adjusting your search terms.</p>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .transport-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .header {
+        background-color: rgb(249, 181, 172);
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+    .nav a {
+        margin: 0 15px;
+        text-decoration: none;
+        color: black;
+        font-weight: bold;
+    }
+
+    .search-container {
+        background-color: rgb(249, 181, 172);
+        padding: 30px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .search-form {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        max-width: 600px;
+        margin: 20px auto 0;
+    }
+
+    .input-container {
+        flex: 1;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+
+    .search-button {
+        padding: 12px 24px;
+        background-color: #333;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .station-section {
+        margin: 40px 0;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .station-section h2 {
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid rgb(249, 181, 172);
+    }
+
+    .station-section h2 i {
+        margin-right: 10px;
+        color: rgb(249, 181, 172);
+    }
+
+    .stations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .station-card {
+        background: #f8f8f8;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .station-card h3 {
+        margin: 0 0 10px 0;
+        color: #333;
+    }
+
+    .rating {
+        margin-top: 10px;
+        color: #666;
+    }
+
+    .stars {
+        color: #ffd700;
+        margin-right: 5px;
+    }
+
+    .map-container {
+        height: 400px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .error-message {
+        background-color: #fee;
+        color: #c00;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 20px 0;
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 40px;
+        background: white;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
+</style>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+{% if stations %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}"></script>
+<script>
+function initMap() {
+    const centerLat = parseFloat("{{ location.lat }}");
+    const centerLng = parseFloat("{{ location.lng }}");
+    
+    const map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 13,
+        center: { lat: centerLat, lng: centerLng },
+        styles: [
+            {
+                "featureType": "transit.station",
+                "elementType": "labels.icon",
+                "stylers": [{ "visibility": "on" }]
+            }
+        ]
+    });
+
+    const markers = {
+        subway: [],
+        train: [],
+        bus: [],
+        other: []
+    };
+
+    {% for type, stations_list in stations.items %}
+        {% for station in stations_list %}
+            const stationLat = parseFloat("{{ station.location.lat }}");
+            const stationLng = parseFloat("{{ station.location.lng }}");
+            
+            if (!isNaN(stationLat) && !isNaN(stationLng)) {
+                const marker = new google.maps.Marker({
+                    position: { lat: stationLat, lng: stationLng },
+                    map: map,
+                    title: "{{ station.name }}",
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 8,
+                        fillColor: "{{ type }}" === "subway" ? "#FF0000" :
+                                 "{{ type }}" === "train" ? "#0000FF" :
+                                 "{{ type }}" === "bus" ? "#00FF00" : "#808080",
+                        fillOpacity: 1,
+                        strokeWeight: 2,
+                        strokeColor: "#FFFFFF"
+                    }
+                });
+
+                const infowindow = new google.maps.InfoWindow({
+                    content: `
+                        <div style="padding: 10px;">
+                            <h3 style="margin: 0 0 5px 0;">${marker.title}</h3>
+                            <p style="margin: 0;">{{ station.address }}</p>
+                            {% if station.rating != 'N/A' %}
+                                <p style="margin: 5px 0 0 0;">Rating: {{ station.rating }}/5</p>
+                            {% endif %}
+                        </div>
+                    `
+                });
+
+                marker.addListener('click', () => {
+                    infowindow.open(map, marker);
+                });
+
+                markers["{{ type }}"].push(marker);
+            }
+        {% endfor %}
+    {% endfor %}
+}
+
+window.onload = initMap;
+</script>
+{% endif %}
+{% endblock %}
