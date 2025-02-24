@@ -1,0 +1,485 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+
+{% block content %}
+<div class="header">
+    <div>GTJGo Logo</div>
+    <div class="nav">
+        <a href="{% url 'main:home' %}">Home</a>
+        <a href="{% url 'hotels:home' %}">Hotels</a>
+        <a href="{% url 'transport:home' %}">Rentals</a>
+        <a href="{% url 'safety:safety_search' %}">Safety</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'favorites:view_favorites' %}">Favorites</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="search-container">
+    <h1>Find Your Flight</h1>
+    <form method="GET" id="flightSearch" class="search-form">
+        <div class="form-row">
+            <div class="input-group">
+                <label for="origin">From</label>
+                <div class="input-container">
+                    <input type="text" 
+                           id="origin" 
+                           name="origin" 
+                           placeholder="Enter city (e.g., NYC)" 
+                           required 
+                           value="{{ request.GET.origin }}"
+                           autocomplete="off"
+                           class="search-input">
+                    <div id="originSuggestions" class="suggestions"></div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="destination">To</label>
+                <div class="input-container">
+                    <input type="text" 
+                           id="destination" 
+                           name="destination" 
+                           placeholder="Enter city (e.g., LON)" 
+                           required 
+                           value="{{ request.GET.destination }}"
+                           autocomplete="off"
+                           class="search-input">
+                    <div id="destinationSuggestions" class="suggestions"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="input-group">
+                <label for="departure_date">Departure Date</label>
+                <input type="date" 
+                       id="departure_date"
+                       name="departure_date" 
+                       required 
+                       value="{{ request.GET.departure_date }}"
+                       class="date-input">
+            </div>
+
+            <div class="input-group">
+                <label for="return_date">Return Date</label>
+                <input type="date" 
+                       id="return_date"
+                       name="return_date" 
+                       value="{{ request.GET.return_date }}"
+                       class="date-input">
+            </div>
+
+            <div class="input-group">
+                <label for="adults">Passengers</label>
+                <input type="number" 
+                       id="adults"
+                       name="adults" 
+                       value="{{ request.GET.adults|default:1 }}" 
+                       min="1"
+                       max="9"
+                       class="number-input">
+            </div>
+        </div>
+
+        <button type="submit" class="search-button">Search Flights</button>
+    </form>
+</div>
+
+{% if error %}
+    <div class="error-message">
+        {{ error }}
+    </div>
+{% endif %}
+
+<div class="results-container">
+    {% if flights %}
+        {% for flight in flights %}
+            <div class="flight-card">
+                {% for itinerary in flight.itineraries %}
+                    {% for segment in itinerary.segments %}
+                        <div class="flight-details">
+                            <div class="route-info">
+                                <div class="location">
+                                    <h3>{{ segment.departure.iataCode }}</h3>
+                                    <p>{{ segment.departure.at|date:"H:i" }}</p>
+                                </div>
+                                <div class="flight-line">
+                                    <span class="airline">{{ segment.carrierCode }}{{ segment.number }}</span>
+                                </div>
+                                <div class="location">
+                                    <h3>{{ segment.arrival.iataCode }}</h3>
+                                    <p>{{ segment.arrival.at|date:"H:i" }}</p>
+                                </div>
+                            </div>
+                            <div class="time-info">
+                                <p>{{ segment.departure.at|date:"D, M d" }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+                
+                <div class="flight-footer">
+                    <p class="price">{{ flight.price.total }} {{ flight.price.currency }}</p>
+                    <button onclick='addToFavorites("FLIGHT", {
+                        "departure": "{{ flight.itineraries.0.segments.0.departure.iataCode }}",
+                        "arrival": "{{ flight.itineraries.0.segments.0.arrival.iataCode }}",
+                        "departure_time": "{{ flight.itineraries.0.segments.0.departure.at }}",
+                        "arrival_time": "{{ flight.itineraries.0.segments.0.arrival.at }}",
+                        "flight_number": "{{ flight.itineraries.0.segments.0.carrierCode }}{{ flight.itineraries.0.segments.0.number }}",
+                        "price": "{{ flight.price.total }} {{ flight.price.currency }}"
+                    })' class="favorite-btn">
+                        Add to Favorites
+                    </button>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<style>
+.header {
+    background-color: rgb(249, 181, 172);
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav a {
+    margin: 0 20px;
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+}
+
+.search-container {
+    background-color: rgb(249, 181, 172);
+    padding: 30px;
+    border-radius: 10px;
+    margin: 20px;
+}
+
+.search-container h1 {
+    margin: 0 0 20px 0;
+    color: #333;
+    font-size: 24px;
+}
+
+.search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.input-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+}
+
+.input-container {
+    position: relative;
+}
+
+.search-input,
+.date-input,
+.number-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.suggestion {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.suggestion:hover {
+    background-color: #f5f5f5;
+}
+
+.search-button {
+    padding: 12px 24px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    align-self: flex-start;
+}
+
+.search-button:hover {
+    background-color: #444;
+}
+
+.error-message {
+    color: #dc3545;
+    background-color: #f8d7da;
+    padding: 10px;
+    margin: 20px;
+    border-radius: 5px;
+}
+
+.results-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.flight-card {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.flight-details {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.route-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.location {
+    text-align: center;
+}
+
+.location h3 {
+    margin: 0;
+    font-size: 24px;
+    color: #333;
+}
+
+.location p {
+    margin: 5px 0 0 0;
+    color: #666;
+}
+
+.flight-line {
+    flex: 1;
+    margin: 0 20px;
+    text-align: center;
+    position: relative;
+}
+
+.flight-line::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    border-top: 2px solid #ddd;
+}
+
+.airline {
+    background-color: rgb(249, 181, 172);
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 14px;
+    position: relative;
+}
+
+.time-info {
+    text-align: center;
+    color: #666;
+}
+
+.flight-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.price {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+.favorite-btn {
+    padding: 10px 20px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.favorite-btn:hover {
+    background-color: #444;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+    }
+
+    .input-group {
+        width: 100%;
+    }
+
+    .route-info {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .flight-line {
+        width: 100%;
+        margin: 20px 0;
+    }
+}
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const originInput = document.getElementById('origin');
+    const destinationInput = document.getElementById('destination');
+    const originSuggestions = document.getElementById('originSuggestions');
+    const destinationSuggestions = document.getElementById('destinationSuggestions');
+    const departureDateInput = document.getElementById('departure_date');
+    const returnDateInput = document.getElementById('return_date');
+
+    // Set minimum dates
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const formatDate = (date) => date.toISOString().split('T')[0];
+    
+    departureDateInput.min = formatDate(today);
+    returnDateInput.min = formatDate(tomorrow);
+    
+    if (!departureDateInput.value) {
+        departureDateInput.value = formatDate(today);
+    }
+    
+    departureDateInput.addEventListener('change', function() {
+        const nextDay = new Date(this.value);
+        nextDay.setDate(nextDay.getDate() + 1);
+        returnDateInput.min = formatDate(nextDay);
+        if (returnDateInput.value && returnDateInput.value < returnDateInput.min) {
+            returnDateInput.value = formatDate(nextDay);
+        }
+    });
+
+    async function searchAirports(keyword, suggestionBox, input) {
+        if (keyword.length < 2) {
+            suggestionBox.innerHTML = '';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/planes/search-airports/?keyword=${keyword}`);
+            const data = await response.json();
+            
+            suggestionBox.innerHTML = '';
+            data.forEach(airport => {
+                const div = document.createElement('div');
+                div.className = 'suggestion';
+                div.textContent = `${airport.iataCode} - ${airport.name}`;
+                div.addEventListener('click', () => {
+                    input.value = airport.iataCode;
+                    suggestionBox.innerHTML = '';
+                });
+                suggestionBox.appendChild(div);
+            });
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    let debounceTimer;
+    
+    function debounce(func, wait) {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(func, wait);
+    }
+
+    originInput.addEventListener('input', (e) => {
+        debounce(() => searchAirports(e.target.value, originSuggestions, originInput), 300);
+    });
+
+    destinationInput.addEventListener('input', (e) => {
+        debounce(() => searchAirports(e.target.value, destinationSuggestions, destinationInput), 300);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.input-container')) {
+            originSuggestions.innerHTML = '';
+            destinationSuggestions.innerHTML = '';
+        }
+    });
+});
+
+function addToFavorites(type, itemData) {
+    fetch('/favorites/add/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: JSON.stringify({
+            type: type,
+            item_data: itemData
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert(data.message);
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding to favorites');
+    });
+}
+</script>
+{% endblock %}

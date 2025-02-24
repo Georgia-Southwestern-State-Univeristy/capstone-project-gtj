@@ -1,0 +1,131 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    color: black;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: rgb(249, 181, 172);
+}
+
+header .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+header nav a {
+    margin: 0 10px;
+    text-decoration: none;
+    color: #333;
+}
+
+.container {
+    display: flex;
+    padding: 20px;
+}
+
+main {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.hotel-card {
+    display: flex;
+    background-color: rgb(249, 181, 172);
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hotel-card img {
+    width: 150px;
+    height: 150px;
+    border-radius: 10px;
+    object-fit: cover;
+    margin-right: 20px;
+}
+
+.hotel-details {
+    flex: 1;
+}
+
+.hotel-details h2 {
+    margin: 0 0 10px;
+    font-size: 1.2rem;
+}
+
+.hotel-details .price {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.actions {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.actions button {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #333;
+    color: white;
+    cursor: pointer;
+}
+
+.filters {
+    flex: 1;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.filter-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.filter-section h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #333;
+}
+
+.filter-section label, .filter-section button {
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.filter-section input[type="text"] {
+    padding: 5px;
+    border: 1px solid gray;
+    border-radius: 5px;
+}
+
+.filter-actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.filter-actions button {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #333;
+    color: white;
+    cursor: pointer;
+}

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% extends 'base.html' %}
+    {% load static %}
+   {% block content %}
+  <head>
+    <title>GTJ GO!</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'main/assets/favicon.ico' %}" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{% static 'main/css/style1.css' %}" >
+    
+  </head>
+
+  <body>
+
+    <header>
+        <div class="username">
+            {% if user.is_authenticated %}
+                <img src="{% static 'main/images/profile.png' %}" alt="">
+                <span>{{ user.username }}</span>
+            {% else %}
+                <a href="{% url 'accounts:login' %}">Login</a>
+                <a href="{% url 'accounts:signup' %}">Sign Up</a>
+            {% endif %}
+        </div>
+    </header>
+    <nav>
+        <a href="/">Home</a>
+        <a href="{% url 'planes:home' %}">Flights</a>
+        <a href="{% url 'hotels:home' %}">Hotels</a>
+        <a href="{% url 'transport:home' %}">Rentals</a>
+        <a href="{% url 'safety:safety_search' %}">Safety</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'favorites:view_favorites' %}">Favorites</a>
+        {% endif %}
+    </nav>
+   
+    <div class="search-bar">
+        <form method="GET" action="{% url 'destinations:city_info' %}">
+            <input type="text" name="query" placeholder="Search for a city or country...">
+            <button type="submit">Search</button>
+        </form>
+    </div>
+    <div class="main-content">
+        <div class="card">
+            <img src="{% static 'main/images/vatican.jpg' %}" alt="Vatican">
+            <h3>Vatican City</h3>
+            <p>The world's SMALLEST country!</p>
+        </div>
+        <div class="card">
+            <img src="{% static 'main/images/Europe.jpg' %}" alt="Europe">
+            <h3>Best Cities to Visit in Europe</h3>
+            <p>Come see the Eiffel Tower!</p>
+        </div>
+        <div class="card">
+            <img src="{% static 'main/images/Wildlife.jpg' %}" alt="Wildlife">
+            <h3>Best Spots for Wildlife</h3>
+            <p>Lions, Tigers, and Bears, Oh My!</p>
+        </div>
+        <div class="card">
+            <img src="{% static 'main/images/Belgium.jpg' %}" alt="Belgium">
+            <h3>Belgium</h3>
+            <p>Come try our Waffles!</p>
+        </div>
+    </div>
+    <div class="popular-section">
+        <h2>Popular Destinations</h2>
+        <div class="popular-destinations">
+            <div class="destination">
+                <img src="{% static 'main/images/Belize.jpg' %}" alt="Belize">
+                <h4>Belize</h4>
+                <p>Central America</p>
+            </div>
+            <div class="destination">
+                <img src="{% static 'main/images/Santorini.jpg' %}" alt="Santorini">
+                <h4>Santorini</h4>
+                <p>Greece</p>
+            </div>
+            <div class="destination">
+                <img src="{% static 'main/images/Japan.jpg' %}" alt="Kanifushi">
+                <h4>Japan</h4>
+                <p>East Asia</p>
+            </div>
+            <div class="destination">
+                <img src="{% static 'main/images/Kilimanjaro.jpg' %}" alt="Kilimanjaro">
+                <h4>Kilimanjaro</h4>
+                <p>Tanzania</p>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+  </body>
+</html>

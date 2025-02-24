@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    <form method="GET" action="{% url 'destinations:country_info' %}" class="mb-6">
+        <input type="text" 
+               name="query" 
+               placeholder="Enter country or city name" 
+               class="p-2 border rounded"
+               value="{{ query }}">
+        <button type="submit" class="bg-blue-500 text-white p-2 rounded">Search</button>
+    </form>
+
+    {% if error %}
+        <div class="text-red-500 mb-4">{{ error }}</div>
+    {% endif %}
+
+    {% if city %}
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold mb-4">{{ city.address.city|default:city.display_name }}</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-xl font-semibold mb-2">Location Details</h3>
+                    <p><strong>Country:</strong> {{ city.address.country }}</p>
+                    <p><strong>Region:</strong> {{ city.address.state|default:"N/A" }}</p>
+                    <p><strong>Type:</strong> {{ city.type|title }}</p>
+                    {% if city.lat and city.lon %}
+                        <p><strong>Coordinates:</strong> {{ city.lat }}, {{ city.lon }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if country %}
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold mb-4">{{ country.name.common }}</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-xl font-semibold mb-2">Country Information</h3>
+                    <p><strong>Capital:</strong> {{ country.capital.0|default:"N/A" }}</p>
+                    <p><strong>Region:</strong> {{ country.region }}</p>
+                    <p><strong>Population:</strong> {{ country.population|intcomma }}</p>
+                    <p><strong>Languages:</strong> 
+                        {% for lang in country.languages.values %}
+                            {{ lang }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                    <p><strong>Currencies:</strong> 
+                        {% for currency in country.currencies.values %}
+                            {{ currency.name }} ({{ currency.symbol }}){% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                </div>
+                <div>
+                    {% if country.flags.svg %}
+                        <img src="{{ country.flags.svg }}" 
+                             alt="Flag of {{ country.name.common }}" 
+                             class="max-w-sm rounded shadow">
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if travel_tips %}
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold mb-4">Travel Tips</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for tip in travel_tips %}
+                    <div class="bg-white p-4 rounded shadow">
+                        <h3 class="font-semibold text-lg mb-2">{{ tip.category }}</h3>
+                        <p>{{ tip.tip }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
