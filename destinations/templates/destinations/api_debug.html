@@ -1,0 +1,399 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h1>Destinations API Debug</h1>
+    
+    <div class="card">
+        <div class="card-header">
+            <h2>Test API Endpoints</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="api_call_type">API Call Type:</label>
+                    <select name="api_call_type" id="api_call_type" class="form-control" required>
+                        <option value="geocode">Google Maps Geocoding</option>
+                        <option value="poi">Points of Interest</option>
+                        <option value="activities">Tours & Activities</option>
+                        <option value="city_hotels">Hotels by City</option>
+                    </select>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="city_code">City Code (IATA):</label>
+                            <input type="text" name="city_code" id="city_code" 
+                                   class="form-control" 
+                                   placeholder="3-letter code (e.g., PAR, NYC)" 
+                                   required>
+                            <small class="form-text text-muted">Required for Hotels by City API</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="city_name">City Name:</label>
+                            <input type="text" name="city_name" id="city_name" 
+                                   class="form-control" 
+                                   placeholder="Full city name (e.g., Paris, New York)">
+                            <small class="form-text text-muted">Used for geocoding if provided</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Test API</button>
+            </form>
+        </div>
+    </div>
+    
+    {% if error %}
+    <div class="alert alert-danger mt-4">
+        <strong>Error:</strong> {{ error }}
+    </div>
+    {% endif %}
+    
+    {% if map_data %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>Map Location</h3>
+        </div>
+        <div class="card-body">
+            <div id="map" style="height: 400px; width: 100%;"></div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if request_params %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>Request Parameters</h3>
+        </div>
+        <div class="card-body">
+            <pre>{{ request_params|pprint }}</pre>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if api_response %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>API Response</h3>
+        </div>
+        <div class="card-body">
+            <pre style="max-height: 500px; overflow-y: auto;">{{ api_response }}</pre>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if results %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>Results Overview</h3>
+        </div>
+        <div class="card-body">
+            {% if request_params.api_call_type == 'geocode' %}
+                <div class="geocode-results">
+                    <p><strong>Status:</strong> {{ results.status }}</p>
+                    
+                    {% if results.results %}
+                        <h4>Found {{ results.results|length }} results</h4>
+                        {% for place in results.results %}
+                            <div class="result-card">
+                                <h5>{{ place.formatted_address }}</h5>
+                                <p><strong>Place ID:</strong> {{ place.place_id }}</p>
+                                <p><strong>Location Type:</strong> {{ place.geometry.location_type }}</p>
+                                <p><strong>Coordinates:</strong> {{ place.geometry.location.lat }}, {{ place.geometry.location.lng }}</p>
+                                {% if place.address_components %}
+                                    <h6>Address Components:</h6>
+                                    <ul>
+                                        {% for component in place.address_components %}
+                                            <li>
+                                                {{ component.long_name }} ({{ component.short_name }})
+                                                - Types: {% for type in component.types %}{{ type }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No results found</p>
+                    {% endif %}
+                </div>
+            {% elif request_params.api_call_type == 'poi' %}
+                <div class="poi-results">
+                    <h4>Found {{ results|length }} Points of Interest</h4>
+                    
+                    <div class="poi-grid">
+                        {% for poi in results %}
+                            <div class="poi-card">
+                                <h5>{{ poi.name }}</h5>
+                                <p><strong>Type:</strong> {{ poi.category }}</p>
+                                {% if poi.rankingScore %}
+                                    <p><strong>Ranking:</strong> {{ poi.rankingScore }}</p>
+                                {% endif %}
+                                <p><strong>Coordinates:</strong> {{ poi.geoCode.latitude }}, {{ poi.geoCode.longitude }}</p>
+                                {% if poi.tags %}
+                                    <div class="tags">
+                                        {% for tag in poi.tags %}
+                                            <span class="tag">{{ tag }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% elif request_params.api_call_type == 'activities' %}
+                <div class="activities-results">
+                    <h4>Found {{ results|length }} Activities</h4>
+                    
+                    <div class="activities-grid">
+                        {% for activity in results %}
+                            <div class="activity-card">
+                                <h5>{{ activity.name }}</h5>
+                                {% if activity.shortDescription %}
+                                    <p>{{ activity.shortDescription }}</p>
+                                {% endif %}
+                                {% if activity.price %}
+                                    <p><strong>Price:</strong> {{ activity.price.amount }} {{ activity.price.currencyCode }}</p>
+                                {% endif %}
+                                {% if activity.minimumDuration %}
+                                    <p><strong>Duration:</strong> {{ activity.minimumDuration }}</p>
+                                {% endif %}
+                                {% if activity.rating %}
+                                    <p><strong>Rating:</strong> {{ activity.rating }}</p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% elif request_params.api_call_type == 'city_hotels' %}
+                <div class="hotels-results">
+                    <h4>Found {{ results|length }} Hotels</h4>
+                    
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Hotel ID</th>
+                                    <th>Name</th>
+                                    <th>Chain Code</th>
+                                    <th>IATA Code</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for hotel in results %}
+                                <tr>
+                                    <td>{{ hotel.hotelId }}</td>
+                                    <td>{{ hotel.name }}</td>
+                                    <td>{{ hotel.chainCode }}</td>
+                                    <td>{{ hotel.iataCode }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .card {
+        margin-top: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .card-header {
+        background-color: rgb(249, 181, 172);
+        padding: 15px;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+    .card-body {
+        padding: 20px;
+        background-color: white;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-control {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        width: 100%;
+    }
+    .btn {
+        padding: 10px 20px;
+        background-color: rgb(249, 181, 172);
+        border: none;
+        border-radius: 5px;
+        color: black;
+        cursor: pointer;
+    }
+    .btn:hover {
+        background-color: rgb(244, 156, 146);
+    }
+    pre {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+    }
+    .alert {
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 15px;
+    }
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 -10px;
+    }
+    .col-md-6 {
+        flex: 0 0 50%;
+        padding: 0 10px;
+        box-sizing: border-box;
+    }
+    .result-card, .poi-card, .activity-card {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+    }
+    .poi-grid, .activities-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 15px;
+    }
+    .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 10px;
+    }
+    .tag {
+        background-color: #e9ecef;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8em;
+    }
+    @media (max-width: 768px) {
+        .col-md-6 {
+            flex: 0 0 100%;
+        }
+        .poi-grid, .activities-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const apiCallType = document.getElementById('api_call_type');
+        const cityCode = document.getElementById('city_code');
+        const cityName = document.getElementById('city_name');
+        
+        // Update field requirements based on API call type
+        apiCallType.addEventListener('change', function() {
+            const value = this.value;
+            
+            if (value === 'geocode') {
+                cityCode.required = false;
+                cityName.required = true;
+            } else if (value === 'city_hotels') {
+                cityCode.required = true;
+                cityName.required = false;
+            } else {
+                cityCode.required = true;
+                cityName.required = false;
+            }
+        });
+        
+        // Common city code examples
+        const cityExamples = [
+            {code: 'PAR', name: 'Paris'},
+            {code: 'NYC', name: 'New York'},
+            {code: 'LON', name: 'London'},
+            {code: 'TYO', name: 'Tokyo'},
+            {code: 'SYD', name: 'Sydney'},
+            {code: 'ROM', name: 'Rome'},
+            {code: 'BKK', name: 'Bangkok'},
+            {code: 'HKG', name: 'Hong Kong'},
+            {code: 'SIN', name: 'Singapore'},
+            {code: 'BCN', name: 'Barcelona'}
+        ];
+        
+        // Add example city dropdown
+        const form = document.querySelector('form');
+        const exampleSelector = document.createElement('div');
+        exampleSelector.className = 'form-group mt-3';
+        exampleSelector.innerHTML = `
+            <label for="example-select">Quick Examples:</label>
+            <select id="example-select" class="form-control">
+                <option value="">Select an example city</option>
+                ${cityExamples.map(city => `<option value="${city.code}">${city.name} (${city.code})</option>`).join('')}
+            </select>
+        `;
+        form.insertBefore(exampleSelector, form.querySelector('button'));
+        
+        // Handle example selection
+        document.getElementById('example-select').addEventListener('change', function() {
+            const selectedValue = this.value;
+            if (selectedValue) {
+                const selected = cityExamples.find(city => city.code === selectedValue);
+                cityCode.value = selected.code;
+                cityName.value = selected.name;
+            }
+        });
+        
+        {% if map_data %}
+        // Initialize map if coordinates are available
+        function initMap() {
+            const map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: {{ map_data.lat }}, lng: {{ map_data.lng }} },
+                zoom: 12,
+            });
+            
+            new google.maps.Marker({
+                position: { lat: {{ map_data.lat }}, lng: {{ map_data.lng }} },
+                map: map,
+                title: "{{ request_params.city_name|default:request_params.city_code|escapejs }}"
+            });
+            
+            {% if request_params.api_call_type == 'poi' and results %}
+                // Add markers for points of interest
+                {% for poi in results %}
+                    new google.maps.Marker({
+                        position: { 
+                            lat: {{ poi.geoCode.latitude }}, 
+                            lng: {{ poi.geoCode.longitude }} 
+                        },
+                        map: map,
+                        title: "{{ poi.name|escapejs }}",
+                        icon: {
+                            url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                        }
+                    });
+                {% endfor %}
+            {% endif %}
+        }
+        
+        window.onload = initMap;
+        {% endif %}
+    });
+</script>
+
+{% if map_data %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key|default:'YOUR_API_KEY_HERE' }}&callback=initMap" async defer></script>
+{% endif %}
+{% endblock %}
