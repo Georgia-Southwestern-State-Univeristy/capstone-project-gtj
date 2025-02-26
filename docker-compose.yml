@@ -1,9 +1,7 @@
-
-
 services:
   db:
-    image: postgres:17
-    container_name: gtgo-postgres
+    image: postgres:latest
+    container_name: gtjgo-postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: coffeeandtv
@@ -11,8 +9,8 @@ services:
     ports:
       - "5432:5432"
     volumes:
-    - postgres_data:/var/lib/postgresql/data
-    - ./init-scripts:/docker-entrypoint-initdb.d
-      
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+
 volumes:
-  postgres-data:
+  postgres_data:
