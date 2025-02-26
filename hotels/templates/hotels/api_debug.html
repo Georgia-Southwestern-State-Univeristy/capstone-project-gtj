@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h1>Amadeus API Debug for Hotels</h1>
+    
+    <div class="card">
+        <div class="card-header">
+            <h2>Test API Endpoints</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="api_call_type">API Call Type:</label>
+                    <select name="api_call_type" id="api_call_type" class="form-control" required>
+                        <option value="city_search">City Search</option>
+                        <option value="hotels_by_city">Hotels by City</option>
+                        <option value="hotel_offers">Hotel Offers</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cityCode">City Code:</label>
+                    <input type="text" name="cityCode" id="cityCode" 
+                           class="form-control" 
+                           placeholder="Enter 3-letter IATA code (e.g., NYC)" 
+                           required>
+                </div>
+                
+                <div id="date-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="checkIn">Check-in Date:</label>
+                        <input type="date" name="checkIn" id="checkIn" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="checkOut">Check-out Date:</label>
+                        <input type="date" name="checkOut" id="checkOut" class="form-control">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Test API</button>
+            </form>
+        </div>
+    </div>
+    
+    {% if error %}
+    <div class="alert alert-danger mt-4">
+        <strong>Error:</strong> {{ error }}
+    </div>
+    {% endif %}
+    
+    {% if request_params %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>Request Parameters</h3>
+        </div>
+        <div class="card-body">
+            <pre>{{ request_params|pprint }}</pre>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if api_response %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>API Response</h3>
+        </div>
+        <div class="card-body">
+            <pre style="max-height: 500px; overflow-y: auto;">{{ api_response }}</pre>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if results %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>Results</h3>
+        </div>
+        <div class="card-body">
+            {% if request_params.api_call_type == 'city_search' %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>IATA Code</th>
+                                <th>Name</th>
+                                <th>Country</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for city in results %}
+                            <tr>
+                                <td>{{ city.iataCode }}</td>
+                                <td>{{ city.name }}</td>
+                                <td>{{ city.address.countryCode }}</td>
+                                <td>{{ city.subType }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% elif request_params.api_call_type == 'hotels_by_city' %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Hotel ID</th>
+                                <th>Name</th>
+                                <th>Chain Code</th>
+                                <th>IATA Code</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for hotel in results %}
+                            <tr>
+                                <td>{{ hotel.hotelId }}</td>
+                                <td>{{ hotel.name }}</td>
+                                <td>{{ hotel.chainCode }}</td>
+                                <td>{{ hotel.iataCode }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% elif request_params.api_call_type == 'hotel_offers' %}
+                {% for hotel in results %}
+                <div class="hotel-card mb-4">
+                    <h4>{{ hotel.hotel.name }}</h4>
+                    <p>Hotel ID: {{ hotel.hotel.hotelId }}</p>
+                    
+                    {% if hotel.offers %}
+                        {% for offer in hotel.offers %}
+                        <div class="offer-card">
+                            <p>Room Type: {{ offer.room.type }}</p>
+                            <p>Price: {{ offer.price.total }} {{ offer.price.currency }}</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No offers available</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .card {
+        margin-top: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .card-header {
+        background-color: rgb(249, 181, 172);
+        padding: 15px;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+    .card-body {
+        padding: 20px;
+        background-color: white;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-control {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        width: 100%;
+    }
+    .btn {
+        padding: 10px 20px;
+        background-color: rgb(249, 181, 172);
+        border: none;
+        border-radius: 5px;
+        color: black;
+        cursor: pointer;
+    }
+    .btn:hover {
+        background-color: rgb(244, 156, 146);
+    }
+    pre {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+    }
+    .hotel-card, .offer-card {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const apiCallType = document.getElementById('api_call_type');
+        const dateFields = document.getElementById('date-fields');
+        
+        // Show/hide date fields based on selected API call type
+        apiCallType.addEventListener('change', function() {
+            if (this.value === 'hotel_offers') {
+                dateFields.style.display = 'block';
+            } else {
+                dateFields.style.display = 'none';
+            }
+        });
+        
+        // Set default dates
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const nextWeek = new Date(today);
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        
+        document.getElementById('checkIn').value = formatDate(nextWeek);
+        document.getElementById('checkOut').value = formatDate(new Date(nextWeek.getTime() + (3 * 24 * 60 * 60 * 1000)));
+        
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+    });
+</script>
+{% endblock %}
