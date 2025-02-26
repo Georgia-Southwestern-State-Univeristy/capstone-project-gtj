@@ -2,7 +2,7 @@ verison: '3.8'
 
 services:
   db:
-    build: .
+    image: postgres:17
     container_name: gtgo-postgres
     environment:
       POSTGRES_USER: postgres
