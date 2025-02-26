@@ -1,0 +1,17 @@
+verison: '3.8'
+
+services:
+  db:
+    build: .
+    container_name: gtgo-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: coffeeandtv
+      POSTGRES_DB: GTJ_GO
+    ports:
+      - "5432:5432"
+    volumes:
+      -postgres-data:/var/lib/postgresql/data
+      -./init.sql:/docker-entrypoint-initdb.
+volumes:
+  postgres-data:
