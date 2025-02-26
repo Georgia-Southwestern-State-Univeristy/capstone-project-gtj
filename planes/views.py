@@ -6,7 +6,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from datetime import datetime
 
-# Removed duplicate home function
    
 def search_airports(request):
     amadeus = Client(
@@ -44,7 +43,7 @@ class FlightDataView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=400)
 
-            # Validate required fields
+            
             if not all([origin, destination, departure_date]):
                 return Response({
                     'error': 'Origin, destination, and departure date are required.'
@@ -68,7 +67,6 @@ class FlightDataView(APIView):
             # Add return date if provided
             if return_date:
                 search_params['returnDate'] = return_date
-# Removed duplicate search_airports function
 from common.cache_utils import api_cache
 import logging
 
