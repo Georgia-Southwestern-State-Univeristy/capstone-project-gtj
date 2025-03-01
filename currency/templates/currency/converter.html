@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="currency-container">
+    <div class="header">
+        <div>GTJGo Logo</div>
+        <div class="nav">
+            <a href="{% url 'main:home' %}">Home</a>
+            <a href="{% url 'planes:home' %}">Flights</a>
+            <a href="{% url 'hotels:home' %}">Hotels</a>
+            <a href="{% url 'transport:home' %}">Rentals</a>
+            <a href="{% url 'currency:converter' %}">Currency</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'favorites:view_favorites' %}">Favorites</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="converter-box">
+        <h1>Currency Converter</h1>
+        
+        {% if error %}
+            <div class="error-message">
+                {{ error }}
+            </div>
+        {% endif %}
+        
+        <form method="GET" class="converter-form">
+            <div class="form-group">
+                <label for="amount">Amount</label>
+                <input type="number" 
+                       id="amount" 
+                       name="amount" 
+                       value="{{ amount }}" 
+                       min="0.01" 
+                       step="0.01" 
+                       required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="from_currency">From</label>
+                    <select id="from_currency" name="from_currency" required>
+                        {% for currency in currencies %}
+                            <option value="{{ currency.code }}" {% if currency.code == from_currency %}selected{% endif %}>
+                                {{ currency.code }} - {{ currency.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="swap-button" onclick="swapCurrencies()">
+                    <span>⇄</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="to_currency">To</label>
+                    <select id="to_currency" name="to_currency" required>
+                        {% for currency in currencies %}
+                            <option value="{{ currency.code }}" {% if currency.code == to_currency %}selected{% endif %}>
+                                {{ currency.code }} - {{ currency.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <button type="submit" class="convert-button">Convert</button>
+        </form>
+        
+        {% if result %}
+            <div class="result-box">
+                <div class="result-amount">
+                    <span class="result-value">{{ result.converted_amount }}</span>
+                    <span class="result-currency">{{ result.to_currency }}</span>
+                </div>
+                <div class="conversion-details">
+                    {{ result.amount }} {{ result.from_currency }} = {{ result.converted_amount }} {{ result.to_currency }}
+                </div>
+                <div class="exchange-rate">
+                    1 {{ result.from_currency }} = {{ result.rate }} {{ result.to_currency }}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="info-box">
+        <h2>Travel Currency Tips</h2>
+        <div class="tips-container">
+            <div class="tip-card">
+                <h3>Exchange Rates</h3>
+                <p>Exchange rates at airports and hotels are typically less favorable. Consider using ATMs or currency exchange services in city centers for better rates.</p>
+            </div>
+            <div class="tip-card">
+                <h3>Credit Cards</h3>
+                <p>Notify your bank before traveling to avoid having your cards blocked for suspicious activity. Also check for foreign transaction fees.</p>
+            </div>
+            <div class="tip-card">
+                <h3>Local Currency</h3>
+                <p>Always carry some local currency for small purchases, transportation, and places that don't accept cards.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .currency-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: Arial, sans-serif;
+    }
+    
+    .header {
+        background-color: rgb(249, 181, 172);
+        padding: 15px;
+        border-radius: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .nav a {
+        margin: 0 15px;
+        text-decoration: none;
+        color: black;
+        font-weight: bold;
+    }
+    
+    .converter-box {
+        background-color: white;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .converter-box h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    
+    .converter-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .form-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .form-group {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .form-group label {
+        font-weight: bold;
+        color: #555;
+    }
+    
+    .form-group input, .form-group select {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+    
+    .swap-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgb(249, 181, 172);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        margin-top: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+    
+    .swap-button:hover {
+        transform: scale(1.1);
+    }
+    
+    .convert-button {
+        background-color: rgb(249, 181, 172);
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .convert-button:hover {
+        background-color: rgb(230, 150, 140);
+    }
+    
+    .result-box {
+        margin-top: 20px;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 10px;
+        text-align: center;
+    }
+    
+    .result-amount {
+        margin-bottom: 10px;
+    }
+    
+    .result-value {
+        font-size: 28px;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .result-currency {
+        font-size: 20px;
+        color: #555;
+        margin-left: 5px;
+    }
+    
+    .conversion-details, .exchange-rate {
+        color: #666;
+        margin: 5px 0;
+    }
+    
+    .error-message {
+        background-color: #ffe5e5;
+        color: #d50000;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    
+    .info-box {
+        background-color: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .info-box h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    
+    .tips-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+    
+    .tip-card {
+        background-color: #f9f9f9;
+        padding: 15px;
+        border-radius: 10px;
+    }
+    
+    .tip-card h3 {
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .tip-card p {
+        color: #666;
+        line-height: 1.5;
+    }
+</style>
+
+<script>
+    function swapCurrencies() {
+        const fromCurrency = document.getElementById('from_currency');
+        const toCurrency = document.getElementById('to_currency');
+        
+        const temp = fromCurrency.value;
+        fromCurrency.value = toCurrency.value;
+        toCurrency.value = temp;
+    }
+    
+    // Optional: Real-time conversion preview
+    document.addEventListener('DOMContentLoaded', function() {
+        const amount = document.getElementById('amount');
+        const fromCurrency = document.getElementById('from_currency');
+        const toCurrency = document.getElementById('to_currency');
+        
+        // Add event listeners for real-time updates if needed
+        // This would require additional AJAX functionality
+    });
+</script>
+{% endblock %}

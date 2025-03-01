@@ -1,0 +1,561 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="translator-container">
+    <div class="header">
+        <div>GTJGo Logo</div>
+        <div class="nav">
+            <a href="{% url 'main:home' %}">Home</a>
+            <a href="{% url 'planes:home' %}">Flights</a>
+            <a href="{% url 'hotels:home' %}">Hotels</a>
+            <a href="{% url 'transport:home' %}">Rentals</a>
+            <a href="{% url 'currency:converter' %}">Currency</a>
+            <a href="{% url 'translate:translator' %}">Translator</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'favorites:view_favorites' %}">Favorites</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="translator-box">
+        <h1>Language Translator</h1>
+        
+        {% if error %}
+            <div class="error-message">
+                {{ error }}
+            </div>
+        {% endif %}
+        
+        <div class="translator-form">
+            <div class="translation-container">
+                <div class="translation-column">
+                    <div class="language-selector">
+                        <select id="source_language" name="source_language">
+                            <option value="auto">Detect Language</option>
+                            {% for language in languages %}
+                                <option value="{{ language.code }}" {% if language.code == source_language %}selected{% endif %}>
+                                    {{ language.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <textarea id="source_text" placeholder="Enter text to translate">{{ text|default:'' }}</textarea>
+                    
+                    <div class="control-buttons">
+                        <button id="clear_button" type="button">Clear</button>
+                        <button id="detect_button" type="button">Detect Language</button>
+                    </div>
+                </div>
+                
+                <div class="swap-button" onclick="swapLanguages()">
+                    <span>⇄</span>
+                </div>
+                
+                <div class="translation-column">
+                    <div class="language-selector">
+                        <select id="target_language" name="target_language">
+                            {% for language in languages %}
+                                <option value="{{ language.code }}" {% if language.code == target_language %}selected{% endif %}>
+                                    {{ language.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <textarea id="target_text" placeholder="Translation" readonly>{{ translation|default:'' }}</textarea>
+                    
+                    <div class="control-buttons">
+                        <button id="copy_button" type="button">Copy</button>
+                        <button id="translate_button" type="button">Translate</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="translation-history" id="translation_history">
+            <h3>Recent Translations</h3>
+            <div id="history_items" class="history-items">
+                <!-- History items will be added here dynamically -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="info-box">
+        <h2>Helpful Phrases for Travelers</h2>
+        <div class="phrases-container">
+            <div class="phrase-card">
+                <h3>Greetings</h3>
+                <ul>
+                    <li onclick="fillTranslation('Hello, how are you?')">Hello, how are you?</li>
+                    <li onclick="fillTranslation('Good morning/afternoon/evening')">Good morning/afternoon/evening</li>
+                    <li onclick="fillTranslation('Nice to meet you')">Nice to meet you</li>
+                </ul>
+            </div>
+            <div class="phrase-card">
+                <h3>Transportation</h3>
+                <ul>
+                    <li onclick="fillTranslation('Where is the train/bus station?')">Where is the train/bus station?</li>
+                    <li onclick="fillTranslation('How much is a ticket to...?')">How much is a ticket to...?</li>
+                    <li onclick="fillTranslation('Can you call me a taxi?')">Can you call me a taxi?</li>
+                </ul>
+            </div>
+            <div class="phrase-card">
+                <h3>Accommodation</h3>
+                <ul>
+                    <li onclick="fillTranslation('I have a reservation')">I have a reservation</li>
+                    <li onclick="fillTranslation('Is breakfast included?')">Is breakfast included?</li>
+                    <li onclick="fillTranslation('Where is the nearest hotel?')">Where is the nearest hotel?</li>
+                </ul>
+            </div>
+            <div class="phrase-card">
+                <h3>Emergencies</h3>
+                <ul>
+                    <li onclick="fillTranslation('I need help')">I need help</li>
+                    <li onclick="fillTranslation('Call the police/ambulance')">Call the police/ambulance</li>
+                    <li onclick="fillTranslation('I need a doctor')">I need a doctor</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .translator-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: Arial, sans-serif;
+    }
+    
+    .header {
+        background-color: rgb(249, 181, 172);
+        padding: 15px;
+        border-radius: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .nav a {
+        margin: 0 15px;
+        text-decoration: none;
+        color: black;
+        font-weight: bold;
+    }
+    
+    .translator-box {
+        background-color: white;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .translator-box h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    
+    .translation-container {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .translation-column {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .language-selector {
+        width: 100%;
+    }
+    
+    .language-selector select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+        background-color: white;
+    }
+    
+    textarea {
+        width: 100%;
+        height: 150px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+        resize: none;
+    }
+    
+    .swap-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgb(249, 181, 172);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        align-self: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+    
+    .swap-button:hover {
+        transform: scale(1.1);
+    }
+    
+    .control-buttons {
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .control-buttons button {
+        padding: 8px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.2s;
+    }
+    
+    #translate_button, #detect_button {
+        background-color: rgb(249, 181, 172);
+        color: white;
+    }
+    
+    #translate_button:hover, #detect_button:hover {
+        background-color: rgb(230, 150, 140);
+    }
+    
+    #clear_button, #copy_button {
+        background-color: #f0f0f0;
+        color: #333;
+    }
+    
+    #clear_button:hover, #copy_button:hover {
+        background-color: #e0e0e0;
+    }
+    
+    .translation-history {
+        margin-top: 20px;
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+    }
+    
+    .translation-history h3 {
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .history-items {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    
+    .history-item {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .history-item:hover {
+        background-color: #f9f9f9;
+    }
+    
+    .error-message {
+        background-color: #ffe5e5;
+        color: #d50000;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    
+    .info-box {
+        background-color: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .info-box h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    
+    .phrases-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+    
+    .phrase-card {
+        background-color: #f9f9f9;
+        padding: 15px;
+        border-radius: 10px;
+    }
+    
+    .phrase-card h3 {
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .phrase-card ul {
+        padding-left: 20px;
+    }
+    
+    .phrase-card li {
+        margin-bottom: 5px;
+        cursor: pointer;
+        color: #555;
+    }
+    
+    .phrase-card li:hover {
+        color: rgb(249, 181, 172);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .translation-container {
+            flex-direction: column;
+        }
+        
+        .swap-button {
+            transform: rotate(90deg);
+            margin: 10px auto;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sourceText = document.getElementById('source_text');
+        const targetText = document.getElementById('target_text');
+        const sourceLanguage = document.getElementById('source_language');
+        const targetLanguage = document.getElementById('target_language');
+        const translateButton = document.getElementById('translate_button');
+        const clearButton = document.getElementById('clear_button');
+        const copyButton = document.getElementById('copy_button');
+        const detectButton = document.getElementById('detect_button');
+        const historyItems = document.getElementById('history_items');
+        
+        // Load history from local storage
+        loadTranslationHistory();
+        
+        // Translate button click handler
+        translateButton.addEventListener('click', function() {
+            translateText();
+        });
+        
+        // Clear button click handler
+        clearButton.addEventListener('click', function() {
+            sourceText.value = '';
+            targetText.value = '';
+        });
+        
+        // Copy button click handler
+        copyButton.addEventListener('click', function() {
+            targetText.select();
+            document.execCommand('copy');
+            
+            // Show feedback
+            const originalText = copyButton.textContent;
+            copyButton.textContent = 'Copied!';
+            setTimeout(() => {
+                copyButton.textContent = originalText;
+            }, 1500);
+        });
+        
+        // Detect language button click handler
+        detectButton.addEventListener('click', function() {
+            detectLanguage();
+        });
+        
+        // Auto-detect as you type (with debounce)
+        let typingTimer;
+        sourceText.addEventListener('input', function() {
+            clearTimeout(typingTimer);
+            if (sourceText.value && sourceLanguage.value === 'auto') {
+                typingTimer = setTimeout(detectLanguage, 1000);
+            }
+        });
+        
+        // Translate function
+        function translateText() {
+            const text = sourceText.value.trim();
+            if (!text) return;
+            
+            const sourceLang = sourceLanguage.value;
+            const targetLang = targetLanguage.value;
+            
+            // Show loading indicator
+            targetText.value = 'Translating...';
+            
+            fetch('{% url "translate:translate_api" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    text: text,
+                    source_language: sourceLang,
+                    target_language: targetLang
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    targetText.value = `Error: ${data.error}`;
+                } else {
+                    targetText.value = data.translation;
+                    
+                    // Save to history
+                    saveToHistory(text, data.translation, sourceLang, targetLang);
+                }
+            })
+            .catch(error => {
+                targetText.value = `Error: ${error.message}`;
+            });
+        }
+        
+        // Detect language function
+        function detectLanguage() {
+            const text = sourceText.value.trim();
+            if (!text) return;
+            
+            fetch('{% url "translate:detect_language" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    text: text
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error(`Error: ${data.error}`);
+                } else {
+                    sourceLanguage.value = data.language;
+                    
+                    // Auto-translate if there's text
+                    if (text) {
+                        translateText();
+                    }
+                }
+            })
+            .catch(error => {
+                console.error(`Error: ${error.message}`);
+            });
+        }
+        
+        // Save translation to history
+        function saveToHistory(original, translated, fromLang, toLang) {
+            const history = JSON.parse(localStorage.getItem('translationHistory') || '[]');
+            
+            // Add new item to the beginning of the array
+            history.unshift({
+                original,
+                translated,
+                fromLang,
+                toLang,
+                timestamp: new Date().toISOString()
+            });
+            
+            // Keep only the last 10 items
+            if (history.length > 10) {
+                history.pop();
+            }
+            
+            localStorage.setItem('translationHistory', JSON.stringify(history));
+            
+            // Update the UI
+            loadTranslationHistory();
+        }
+        
+        // Load translation history from localStorage
+        function loadTranslationHistory() {
+            const history = JSON.parse(localStorage.getItem('translationHistory') || '[]');
+            
+            historyItems.innerHTML = '';
+            
+            if (history.length === 0) {
+                historyItems.innerHTML = '<div class="history-item">No recent translations</div>';
+                return;
+            }
+            
+            history.forEach((item, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                const date = new Date(item.timestamp);
+                const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+                
+                historyItem.innerHTML = `
+                    <div><strong>${item.original.substring(0, 30)}${item.original.length > 30 ? '...' : ''}</strong></div>
+                    <div>${item.translated.substring(0, 30)}${item.translated.length > 30 ? '...' : ''}</div>
+                    <small>${formattedDate}</small>
+                `;
+                
+                historyItem.addEventListener('click', function() {
+                    sourceText.value = item.original;
+                    targetText.value = item.translated;
+                    
+                    // Set languages
+                    sourceLanguage.value = item.fromLang;
+                    targetLanguage.value = item.toLang;
+                });
+                
+                historyItems.appendChild(historyItem);
+            });
+        }
+    });
+    
+    // Swap languages function
+    function swapLanguages() {
+        const sourceLanguage = document.getElementById('source_language');
+        const targetLanguage = document.getElementById('target_language');
+        const sourceText = document.getElementById('source_text');
+        const targetText = document.getElementById('target_text');
+        
+        // Don't swap if source is "auto"
+        if (sourceLanguage.value === 'auto') {
+            return;
+        }
+        
+        // Swap languages
+        const tempLang = sourceLanguage.value;
+        sourceLanguage.value = targetLanguage.value;
+        targetLanguage.value = tempLang;
+        
+        // Swap texts
+        const tempText = sourceText.value;
+        sourceText.value = targetText.value;
+        targetText.value = tempText;
+    }
+    
+    // Fill translation input from phrase suggestions
+    function fillTranslation(phrase) {
+        const sourceText = document.getElementById('source_text');
+        sourceText.value = phrase;
+        
+        // Trigger translation
+        document.getElementById('translate_button').click();
+    }
+</script>
+{% endblock %}

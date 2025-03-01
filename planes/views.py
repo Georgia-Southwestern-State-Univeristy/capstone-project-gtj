@@ -4,46 +4,209 @@ from amadeus import Client, ResponseError
 from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from datetime import datetime
+from datetime import datetime, timedelta
+import json
+import logging
 
-   
-def search_airports(request):
-    amadeus = Client(
+logger = logging.getLogger(__name__)
+
+def get_amadeus_client():
+    """Helper function to get Amadeus client instance"""
+    return Client(
         client_id=settings.AMADEUS_CLIENT_ID,
         client_secret=settings.AMADEUS_CLIENT_SECRET
     )
-   
-    keyword = request.GET.get('keyword', '').strip()
-    if len(keyword) < 2:
-        return JsonResponse([], safe=False)
-        
-    try:
-        response = amadeus.reference_data.locations.get(
-            keyword=keyword,
-            subType=["AIRPORT"],
-            page={'limit': 10}
-        )
-        return JsonResponse(response.data, safe=False)
-    except ResponseError as error:
-        return JsonResponse({'error': str(error)}, status=400)
 
-class FlightDataView(APIView):
-    def get(self, request):
-        amadeus = Client(
-            client_id=settings.AMADEUS_CLIENT_ID,
-            client_secret=settings.AMADEUS_CLIENT_SECRET
-        )
+def get_booking_links(flight):
+    """Generate booking links for multiple platforms"""
+    booking_links = {}
+    
+    # Only process if we have the necessary data
+    if 'itineraries' in flight and flight['itineraries'] and flight['itineraries'][0]['segments']:
+        # Extract basic flight information
+        outbound = flight['itineraries'][0]['segments'][0]
+        origin = outbound['departure']['iataCode']
+        destination = outbound['arrival']['iataCode']
+        
+        # Format departure date (YYYY-MM-DD)
+        departure_date = outbound['departure']['at']
+        if 'T' in departure_date:
+            departure_date = departure_date.split('T')[0]
+            
+        # Get airline information if available
+        airline_code = outbound.get('carrierCode', '')
+        flight_number = outbound.get('number', '')
+        
+        # Check for return flight
+        return_date = None
+        if len(flight['itineraries']) > 1 and flight['itineraries'][1]['segments']:
+            return_flight = flight['itineraries'][1]['segments'][0]
+            return_date = return_flight['departure']['at']
+            if 'T' in return_date:
+                return_date = return_date.split('T')[0]
+        
+        # Generate Google Flights link
+        google_url = "https://www.google.com/travel/flights?hl=en&gl=US"
+        google_url += f"&q=flights%20from%20{origin}%20to%20{destination}%20on%20{departure_date}"
+        if return_date:
+            google_url += f"%20returning%20on%20{return_date}"
+        if airline_code:
+            google_url += f"%20on%20{airline_code}"
+        booking_links['google'] = google_url
+        
+        # Generate Kayak link
+        kayak_url = f"https://www.kayak.com/flights/{origin}-{destination}/{departure_date}"
+        if return_date:
+            kayak_url += f"/{return_date}"
+        if airline_code:
+            kayak_url += f"/{airline_code}"
+        kayak_url += f"?sort=bestflight_a"
+        booking_links['kayak'] = kayak_url
+        
+        # Generate Expedia link
+        expedia_url = "https://www.expedia.com/Flights-Search?trip="
+        if return_date:
+            expedia_url += f"roundtrip&leg1={origin},{destination},{departure_date}&leg2={destination},{origin},{return_date}"
+        else:
+            expedia_url += f"oneway&leg1={origin},{destination},{departure_date}"
+        expedia_url += "&passengers=adults:1,children:0,seniors:0,infantinlap:Y&mode=search"
+        booking_links['expedia'] = expedia_url
+    
+    return booking_links
+
+def home(request):
+    """Main view for the flight search page"""
+    if request.GET:
         try:
             # Clean and validate input data
             origin = request.GET.get('origin', '').strip().upper()
             destination = request.GET.get('destination', '').strip().upper()
             departure_date = request.GET.get('departure_date')
             return_date = request.GET.get('return_date')
-            passengers = request.GET.get('adults', 1)
-        except Exception as e:
-            return Response({'error': str(e)}, status=400)
+            adults = int(request.GET.get('adults', 1))
+            direct_only = request.GET.get('direct_only', 'on')  # Add a checkbox in the form
 
+            # Validate required fields
+            if not all([origin, destination, departure_date]):
+                return render(request, 'planes/home.html', {
+                    'error': 'Origin, destination, and departure date are required.'
+                })
+
+            # Basic IATA code validation
+            if len(origin) != 3 or len(destination) != 3:
+                return render(request, 'planes/home.html', {
+                    'error': 'Invalid airport code. Please use 3-letter IATA codes.'
+                })
+
+            # Create search parameters
+            search_params = {
+                'originLocationCode': origin,
+                'destinationLocationCode': destination,
+                'departureDate': departure_date,
+                'adults': adults,
+                'currencyCode': 'USD',
+                'max': 50  # Increase max results to ensure we get enough after filtering
+            }
+
+            # Add return date if provided
+            if return_date:
+                search_params['returnDate'] = return_date
+
+            # Get Amadeus client and make API call
+            amadeus = get_amadeus_client()
             
+            # Make API call with detailed error logging
+            try:
+                logger.info(f"Flight search with params: {search_params}")
+                response = amadeus.shopping.flight_offers_search.get(**search_params)
+                logger.info(f"Found {len(response.data)} flight offers")
+                
+                # Filter for direct flights if requested
+                flight_data = response.data
+                if direct_only == 'on':
+                    flight_data = [
+                        flight for flight in response.data 
+                        if all(len(itinerary['segments']) == 1 for itinerary in flight['itineraries'])
+                    ]
+                    logger.info(f"Filtered to {len(flight_data)} direct flights")
+                
+                # Process the flight data to add booking links
+                for flight in flight_data:
+                    # Generate booking links for multiple platforms
+                    booking_links = get_booking_links(flight)
+                    flight['booking_links'] = booking_links
+                
+                return render(request, 'planes/home.html', {
+                    'flights': flight_data,
+                    'search_params': search_params,
+                    'direct_only': direct_only == 'on'
+                })
+            
+            except ResponseError as api_error:
+                logger.error(f"Amadeus API error: {str(api_error)}")
+                try:
+                    error_details = json.loads(api_error.response.body)
+                    error_message = error_details.get('errors', [{}])[0].get('detail', str(api_error))
+                except:
+                    error_message = str(api_error)
+                
+                return render(request, 'planes/home.html', {
+                    'error': f"Flight search error: {error_message}",
+                    'search_params': search_params
+                })
+
+        except Exception as e:
+            logger.exception(f"Unexpected error in flight search: {str(e)}")
+            return render(request, 'planes/home.html', {
+                'error': f"An unexpected error occurred: {str(e)}"
+            })
+    
+    # If no search parameters, just render the empty form
+    return render(request, 'planes/home.html')
+
+
+def search_airports(request):
+    """
+    API endpoint to search for airports by keyword
+    Used for autocomplete functionality
+    """
+    amadeus = get_amadeus_client()
+    keyword = request.GET.get('keyword', '').strip()
+    if len(keyword) < 2:
+        return JsonResponse([], safe=False)
+        
+    try:
+        logger.info(f"Airport search for keyword: {keyword}")
+        
+        response = amadeus.reference_data.locations.get(
+            keyword=keyword,
+            subType=["AIRPORT"],
+            page={'limit': 10}
+        )
+        
+        logger.debug(f"Found {len(response.data)} airports")
+        return JsonResponse(response.data, safe=False)
+    
+    except ResponseError as error:
+        logger.error(f"Airport search error: {str(error)}")
+        return JsonResponse({'error': str(error)}, status=400)
+    except Exception as e:
+        logger.exception(f"Unexpected error in airport search: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=400)
+
+class FlightDataView(APIView):
+    """REST API endpoint for flight data (optional, for AJAX calls)"""
+    def get(self, request):
+        amadeus = get_amadeus_client()
+        try:
+            # Clean and validate input data
+            origin = request.GET.get('origin', '').strip().upper()
+            destination = request.GET.get('destination', '').strip().upper()
+            departure_date = request.GET.get('departure_date')
+            return_date = request.GET.get('return_date')
+            adults = int(request.GET.get('adults', 1))
+
+            # Validate required fields
             if not all([origin, destination, departure_date]):
                 return Response({
                     'error': 'Origin, destination, and departure date are required.'
@@ -60,83 +223,36 @@ class FlightDataView(APIView):
                 'originLocationCode': origin,
                 'destinationLocationCode': destination,
                 'departureDate': departure_date,
-                'adults': int(passengers),
+                'adults': adults,
                 'currencyCode': 'USD'
             }
 
             # Add return date if provided
             if return_date:
                 search_params['returnDate'] = return_date
-from common.cache_utils import api_cache
-import logging
 
-logger = logging.getLogger(__name__)
+            # Make API call
+            response = amadeus.shopping.flight_offers_search.get(**search_params)
+            return Response(response.data)
+           
+        except ResponseError as error:
+            logger.error(f"API Error in FlightDataView: {str(error)}")
+            return Response({
+                'error': str(error),
+                'search_params': search_params if 'search_params' in locals() else None
+            }, status=400)
+        except Exception as error:
+            logger.exception(f"Unexpected error in FlightDataView: {str(error)}")
+            return Response({
+                'error': f"An error occurred: {str(error)}"
+            }, status=400)
 
-def get_amadeus_client():
-    return Client(
-        client_id=settings.AMADEUS_CLIENT_ID,
-        client_secret=settings.AMADEUS_CLIENT_SECRET
-    )
-
-@api_cache.cached_api_call('airports', timeout=86400)  # Cache airports for 24 hours
-def search_airports(request):
-    try:
-        amadeus = get_amadeus_client()
-        keyword = request.GET.get('keyword', '').strip()
-        
-        if len(keyword) < 2:
-            return JsonResponse([], safe=False)
-            
-        response = amadeus.reference_data.locations.get(
-            keyword=keyword,
-            subType=["AIRPORT"],
-            page={'limit': 10}
-        )
-        return JsonResponse(response.data, safe=False)
-        
-    except Exception as e:
-        logger.error(f"Airport search error: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=400)
-
-@api_cache.cached_api_call('flights', timeout=1800)  # Cache flights for 30 minutes
-def search_flights(request):
-    try:
-        amadeus = get_amadeus_client()
-        origin = request.GET.get('origin', '').strip().upper()
-        destination = request.GET.get('destination', '').strip().upper()
-        departure_date = request.GET.get('departure_date')
-        return_date = request.GET.get('return_date')
-        adults = request.GET.get('adults', 1)
-
-        search_params = {
-            'originLocationCode': origin,
-            'destinationLocationCode': destination,
-            'departureDate': departure_date,
-            'adults': int(adults),
-            'currencyCode': 'USD'
-        }
-
-        if return_date:
-            search_params['returnDate'] = return_date
-
-        response = amadeus.shopping.flight_offers_search.get(**search_params)
-        return JsonResponse(response.data, safe=False)
-        
-    except Exception as e:
-        logger.error(f"Flight search error: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=400)
-
-def home(request):
-    return render(request, 'planes/home.html')
 def api_debug(request):
     """
     API debugging view for planes app to test Amadeus flight API calls
     and handle edge cases
     """
-    amadeus = Client(
-        client_id=settings.AMADEUS_CLIENT_ID,
-        client_secret=settings.AMADEUS_CLIENT_SECRET
-    )
+    amadeus = get_amadeus_client()
     
     context = {
         'results': None,

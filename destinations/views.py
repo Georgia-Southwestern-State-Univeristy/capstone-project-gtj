@@ -4,6 +4,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 import requests
+import json
 
 def get_city_coordinates(city_name):
     """Get latitude and longitude for a city using Google Geocoding API"""

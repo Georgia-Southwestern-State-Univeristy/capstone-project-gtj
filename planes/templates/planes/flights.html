@@ -1,0 +1,21 @@
+<!-- flights/templates/flights/flights.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Flight Results</h1>
+{% if flights %}
+    <ul>
+        {% for flight in flights %}
+        <li>
+            <p>Airline: {{ flight.airline }}</p>
+            <p>Departure: {{ flight.departure.time }} from {{ flight.departure.airport }}</p>
+            <p>Arrival: {{ flight.arrival.time }} at {{ flight.arrival.airport }}</p>
+            <p>Price: {{ flight.price.amount }} {{ flight.price.currency }}</p>
+            <a href="{{ flight.booking_url }}" target="_blank">Book Now</a>
+        </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No flights found.</p>
+{% endif %}
+{% endblock %}
