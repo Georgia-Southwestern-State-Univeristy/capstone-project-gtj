@@ -2,99 +2,287 @@
 {% load static %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'safety/css/SafeResults.css' %}">
-
 <div class="container">
-    <div class="header">
-        <div>GTJGo Logo</div>
-    <div class="nav">
-        <a href="{% url 'main:home' %}">Home</a>
-        <a href="{% url 'hotels:home' %}">Hotels</a>
-        <a href="{% url 'transport:home' %}">Rentals</a>
-        <a href="{% url 'safety:safety_search' %}">Safety</a>
-        {% if user.is_authenticated %}
-            <a href="{% url 'favorites:view_favorites' %}">Favorites</a>
-        {% endif %}
-    </div>
-
-</div>
-</div>
-<div class="stats-card">
-    <div class="location-info">
-        <div class="location-icon">📍</div>
-        <div class="location-name">{{ city|default:"Osaka, Japan" }}</div>
-        <div class="location-label">Location</div>
-    </div>
-
-    <div class="stat-item">
-        <div class="stat-value">
-            <span class="check-icon">✓</span>
-            83%
+    <div class="navbar">
+        <span>GTJGo Logo</span>
+        <div>
+            <a href="{% url 'main:home' %}">Home</a>
+            <a href="{% url 'planes:home' %}">Flights</a>
+            <a href="{% url 'hotels:home' %}">Hotels</a>
+            <a href="{% url 'transport:home' %}">Rentals</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'favorites:view_favorites' %}">Favorites</a>
+            {% endif %}
         </div>
-        <div class="stat-label">Overall Score</div>
     </div>
 
-    <div class="stat-item">
-        <div class="stat-value">75%</div>
-        <div class="stat-icon">👩</div>
-        <div class="stat-label">Discrimination</div>
-    </div>
-
-    <div class="stat-item">
-        <div class="stat-value">80%</div>
-        <div class="stat-icon">🧳</div>
-        <div class="stat-label">Solo Traveling</div>
-    </div>
-
-    <div class="stat-item">
-        <div class="stat-value">90%</div>
-        <div class="stat-icon">🚲</div>
-        <div class="stat-label">Crime</div>
-    </div>
+    {% if error %}
+        <div class="error-box">
+            <h3>{{ error }}</h3>
+            <p>Try searching for another country or check back later as we continue to add more destinations.</p>
+            <a href="{% url 'safety:safety_search' %}" class="back-btn">Back to Search</a>
+        </div>
+    {% elif country %}
+        <div class="header">
+            <!-- Country flag using correct 2-letter country code -->
+            <img src="https://flagsapi.com/{{ country.code|upper }}/flat/64.png" 
+                 onerror="this.src='https://via.placeholder.com/64x64?text={{ country.code }}'" 
+                 alt="{{ country.name }} flag">
+            <h2>{{ country.name }}</h2>
+        </div>
+        
+        <!-- Country image from Unsplash -->
+        <!-- Country image from Unsplash -->
+        <div class="country-image">
+            <img src="https://source.unsplash.com/800x400/?{{ country.name|urlencode }}" 
+            alt="{{ country.name }} landscape"
+            onerror="this.src='https://source.unsplash.com/800x400/?landscape,travel'">
+            <p class="image-caption">{{ country.name }} landscape</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="score">{{ country.overall_safety_score }}%</div>
+                <div class="label">Overall Score</div>
+                <img src="{% static 'safety/images/check.png' %}" alt="Check" onerror="this.src='https://via.placeholder.com/30x30?text=✓'">
+            </div>
+            <div class="stat-item">
+                <div class="score">{{ country.women_safety_score }}%</div>
+                <div class="label">Women Safety</div>
+                <img src="{% static 'safety/images/woman.png' %}" alt="Woman" onerror="this.src='https://via.placeholder.com/30x30?text=👩'">
+            </div>
+            <div class="stat-item">
+                <div class="score">{{ country.night_safety_score }}%</div>
+                <div class="label">Night Safety</div>
+                <img src="{% static 'safety/images/moon.png' %}" alt="Night" onerror="this.src='https://via.placeholder.com/30x30?text=🌙'">
+            </div>
+            <div class="stat-item">
+                <div class="score">{{ country.crime_score }}%</div>
+                <div class="label">Crime</div>
+                <img src="{% static 'safety/images/prevention.png' %}" alt="prevention" onerror="this.src='https://via.placeholder.com/30x30?text=🛡️'">
+            </div>
+        </div>
+        
+        <div class="content">
+            <h2>Is {{ country.name }} Safe? A Tourist's Guide to Safety and Security</h2>
+            <div class="safety-section">
+                {{ country.safety_summary|linebreaks }}
+            </div>
+            
+            <h3>Is {{ country.name }} Safe for Women Travelers?</h3>
+            <div class="safety-section">
+                {{ country.women_safety_info|linebreaks }}
+            </div>
+            
+            <h3>Is {{ country.name }} Safe at Night?</h3>
+            <div class="safety-section">
+                {{ country.night_safety_info|linebreaks }}
+            </div>
+            
+            <h3>Is {{ country.name }} Safe for Solo Travelers?</h3>
+            <div class="safety-section">
+                {{ country.solo_traveler_info|linebreaks }}
+            </div>
+            
+            <h3>Common Crimes and Scams That Tourists Should Be Aware Of</h3>
+            <div class="safety-section">
+                {{ country.crime_info|linebreaks }}
+            </div>
+            
+            <h3>Is {{ country.name }}'s Public Transportation Safe?</h3>
+            <div class="safety-section">
+                {{ country.transportation_safety_info|linebreaks }}
+            </div>
+            
+            <h3>Important Emergency Numbers in {{ country.name }}</h3>
+            <div class="safety-section emergency-numbers">
+                {{ country.emergency_numbers|linebreaks }}
+            </div>
+        </div>
+    {% else %}
+        <div class="error-box">
+            <h3>Please search for a country</h3>
+            <a href="{% url 'safety:safety_search' %}" class="back-btn">Back to Search</a>
+        </div>
+    {% endif %}
 </div>
 
-<div class="main-content">
-    <h1>Is {{ city|default:"Osaka" }} Safe? A Tourist's Guide to Safety and Security</h1>
+<style>
+    body {
+        background-color: rgb(249, 181, 172);
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        color: #333;
+        line-height: 1.6;
+    }
     
-    <img src="{% static 'safety/images/Shinsekai-area-Osaka-Japan.jpg' %}" alt="City View" class="city-image">
-
-    <section>
-        <h2>Is {{ city|default:"Osaka" }} Safe to Travel to Right Now?</h2>
-        <p>As of 2024, {{ city|default:"Osaka" }} continues to maintain its reputation as one of the safest cities in the world for tourists. According to Numbeo, the city boasts a crime index of 14.02 and a safety index of 85.98, placing it among the top-tier destinations in terms of public safety. {{ city|default:"Osaka" }}'s low crime rate is a significant reason why the city is a popular destination for both international tourists and domestic travelers.</p>
-    </section>
-
-    <section>
-        <h2>Is {{ city|default:"Osaka" }} Safe to Visit Alone?</h2>
-        <p>{{ city|default:"Osaka" }} is an excellent city for solo travelers. The city's welcoming atmosphere, efficient public transportation system, and overall safety make it an ideal destination for individuals exploring on their own. Whether wandering through the vibrant Shinsekai area or enjoying the tranquility of the temples, solo travelers will find that the city is easy to navigate and explore.</p>
-        <p>The city's culture emphasizes hospitality, and many locals are accustomed to assisting tourists, even those traveling alone. The city's low crime rates and strict enforcement of public safety laws ensure that solo visitors can feel secure at all times, day or night.</p>
-    </section>
-
-    <section>
-        <h2>Is {{ city|default:"Osaka" }} Safe to Visit for Women?</h2>
-        <p>{{ city|default:"Osaka" }} is also a very safe city for women travelers. According to recent data, the city's violence rate is 7.8%, and incidents of gender-based crime are extremely rare. This makes {{ city|default:"Osaka" }} a comfortable destination for women traveling alone or in groups.</p>
-    </section>
-
-    <section>
-        <h2>Common Crimes and Scams That Tourists Should Be Aware Of</h2>
-        <p>While {{ city|default:"Osaka" }} is generally very safe, tourists should still be aware of potential minor crimes. Pickpocketing is the most common petty crime, though it's rare, especially when compared to other global cities.</p>
-    </section>
-
-    <section>
-        <h2>Is {{ city|default:"Osaka" }}'s Public Transportation Safe?</h2>
-        <p>{{ city|default:"Osaka" }}'s public transportation system is one of the safest and most efficient in the world. The city offers an extensive network of trains, subways, and buses, all of which are safe to use at any time of day.</p>
-    </section>
-
-    <section>
-        <h2>Important Emergency Numbers in {{ city|default:"Osaka" }}</h2>
-        <div class="emergency-numbers">
-            <p>When traveling in {{ city|default:"Osaka" }}, it's essential to have the correct emergency contact numbers on hand:</p>
-            <ul>
-                <li>Police: 110</li>
-                <li>Fire and Ambulance: 119</li>
-                <li>{{ city|default:"Osaka" }} Tourist Information Hotline: +81 6-6771-0190</li>
-            </ul>
-        </div>
-    </section>
-</div>
-</div>
+    .container {
+        max-width: 1000px;
+        margin: 20px auto;
+        padding: 20px;
+        border-radius: 10px;
+    }
+    
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 20px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    
+    .navbar a {
+        text-decoration: none;
+        color: black;
+        margin: 0 10px;
+    }
+    
+    .header {
+        display: flex;
+        align-items: center;
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .header img {
+        width: 64px;
+        height: 64px;
+        border-radius: 5px;
+        margin-right: 20px;
+        object-fit: contain;
+    }
+    
+    .header h2 {
+        margin: 0;
+        font-size: 2em;
+        color: #333;
+    }
+    
+    .country-image {
+        margin: 20px 0;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        background-color: white;
+    }
+    
+    .country-image img {
+        width: 100%;
+        height: auto;
+        display: block;
+        max-height: 400px;
+        object-fit: cover;
+    }
+    
+    .image-caption {
+        padding: 10px;
+        text-align: center;
+        color: #666;
+        margin: 0;
+    }
+    
+    .stats {
+        display: flex;
+        justify-content: space-between;
+        margin: 20px 0;
+        gap: 15px;
+    }
+    
+    .stat-item {
+        flex: 1;
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .score {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .label {
+        margin: 5px 0 10px;
+        color: #666;
+    }
+    
+    .stat-item img {
+        width: 40px;
+        height: 40px;
+        margin-top: 10px;
+    }
+    
+    .content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .content h2 {
+        color: #333;
+        margin-top: 0;
+        border-bottom: 2px solid rgb(249, 181, 172);
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .content h3 {
+        color: #333;
+        margin-top: 30px;
+        border-left: 4px solid rgb(249, 181, 172);
+        padding-left: 10px;
+    }
+    
+    .safety-section {
+        margin-bottom: 20px;
+        line-height: 1.6;
+    }
+    
+    .emergency-numbers {
+        background-color: #f8f8f8;
+        padding: 15px;
+        border-radius: 5px;
+        border-left: 4px solid #e38b8b;
+    }
+    
+    .error-box {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        text-align: center;
+        margin-top: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .back-btn {
+        display: inline-block;
+        background-color: #e38b8b;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        color: black;
+        font-weight: bold;
+        margin-top: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .stats {
+            flex-direction: column;
+        }
+        
+        .stat-item {
+            margin-bottom: 10px;
+        }
+    }
+</style>
 {% endblock %}

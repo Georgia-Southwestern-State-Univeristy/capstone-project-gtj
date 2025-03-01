@@ -4,6 +4,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from .cache_utils import api_cache
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 

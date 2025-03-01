@@ -1,0 +1,8 @@
+<!-- flights/templates/flights/error.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Error</h1>
+<p>{{ error }}</p>
+<a href="{% url 'planes:home' %}">Try Again</a>
+{% endblock %}

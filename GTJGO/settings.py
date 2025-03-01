@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-(jr$c=w=m)o8l)72q2eo$*p3c38j7grzf@1_z#%#72o(!&-e-5')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -17,6 +17,8 @@ AMADEUS_CLIENT_ID = config('AMADEUS_CLIENT_ID', default='')
 AMADEUS_CLIENT_SECRET = config('AMADEUS_CLIENT_SECRET', default='')
 
 GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY', default='')
+GOOGLE_TRANSLATE_API_KEY = config('GOOGLE_TRANSLATE_API_KEY', default='')
+EXCHANGE_RATE_API_KEY = config('EXCHANGE_RATE_API_KEY', default='')
 
 GOOGLE_MAPS_LIBRARIES = [
     'places',    # For transit station search
@@ -42,6 +44,8 @@ INSTALLED_APPS = [
     'destinations',
     'safety',
     'favorites',
+    'translate',
+    'currency',
     'rest_framework',
     'rest_framework_simplejwt',
 ]
