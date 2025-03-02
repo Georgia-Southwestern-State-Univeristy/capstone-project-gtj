@@ -3,7 +3,7 @@ from django.db import models
 
 class CountrySafety(models.Model):
     name = models.CharField(max_length=100)
-    code = models.CharField(max_length=3)  # Change this to 3 since some codes are 3 chars
+    code = models.CharField(max_length=2)  # Change this to 3 since some codes are 3 chars
     capital = models.CharField(max_length=100, blank=True)
     region = models.CharField(max_length=100, blank=True)
     
