@@ -24,7 +24,7 @@ def safety_results(request):
                 models.Q(name__icontains=country_query) | 
                 models.Q(code__iexact=country_query)
             ).first()
-            
+
             if country:
                 # Check if country has safety info
                 if not country.safety_summary:
@@ -53,6 +53,8 @@ def safety_results(request):
                         country.emergency_numbers = safety_info.get('emergency_numbers', '')
                 
                 context = {'country': country}
+                
+
             else:
                 # Country not found in database, try direct Claude API
                 safety_info = get_country_safety_info(country_query)
@@ -69,10 +71,10 @@ def safety_results(request):
                         crime_info=safety_info.get('crime_info', ''),
                         transportation_safety_info=safety_info.get('transportation_safety_info', ''),
                         emergency_numbers=safety_info.get('emergency_numbers', ''),
-                        overall_safety_score=50,
-                        women_safety_score=50,
-                        night_safety_score=50,
-                        crime_score=50
+                        overall_safety_score='N/A',
+                        women_safety_score='N/A',
+                        night_safety_score='N/A',
+                        crime_score='N/A'
                     )
                     context = {'country': country}
                 else:
@@ -87,7 +89,6 @@ def safety_results(request):
             }
     else:
         context = {}
-    
     return render(request, 'safety/safety_results.html', context)
 @login_required
 def save_country_info(request, country_id):

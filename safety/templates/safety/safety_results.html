@@ -7,9 +7,10 @@
         <span>GTJGo Logo</span>
         <div>
             <a href="{% url 'main:home' %}">Home</a>
-            <a href="{% url 'planes:home' %}">Flights</a>
-            <a href="{% url 'hotels:home' %}">Hotels</a>
-            <a href="{% url 'transport:home' %}">Rentals</a>
+            <a href="{% url 'transport:home' %}">Transportation</a>
+            <a href="{% url 'safety:safety_search' %}">Safety</a>
+            <a href="{% url 'translate:translator' %}">Translator</a>
+            <a href="{% url 'currency:converter' %}">Currency</a>
             {% if user.is_authenticated %}
                 <a href="{% url 'favorites:view_favorites' %}">Favorites</a>
             {% endif %}
@@ -24,22 +25,13 @@
         </div>
     {% elif country %}
         <div class="header">
-            <!-- Country flag using correct 2-letter country code -->
+            <!-- Country flag using correct 3-letter country code -->
             <img src="https://flagsapi.com/{{ country.code|upper }}/flat/64.png" 
                  onerror="this.src='https://via.placeholder.com/64x64?text={{ country.code }}'" 
                  alt="{{ country.name }} flag">
             <h2>{{ country.name }}</h2>
         </div>
-        
-        <!-- Country image from Unsplash -->
-        <!-- Country image from Unsplash -->
-        <div class="country-image">
-            <img src="https://source.unsplash.com/800x400/?{{ country.name|urlencode }}" 
-            alt="{{ country.name }} landscape"
-            onerror="this.src='https://source.unsplash.com/800x400/?landscape,travel'">
-            <p class="image-caption">{{ country.name }} landscape</p>
-        </div>
-        
+    
         <div class="stats">
             <div class="stat-item">
                 <div class="score">{{ country.overall_safety_score }}%</div>
@@ -65,38 +57,54 @@
         
         <div class="content">
             <h2>Is {{ country.name }} Safe? A Tourist's Guide to Safety and Security</h2>
+            
             <div class="safety-section">
-                {{ country.safety_summary|linebreaks }}
+                <h3>Overall Safety Assessment</h3>
+                <div class="section-content">
+                    {{ country.safety_summary|safe }}
+                </div>
             </div>
             
-            <h3>Is {{ country.name }} Safe for Women Travelers?</h3>
             <div class="safety-section">
-                {{ country.women_safety_info|linebreaks }}
+                <h3>Is {{ country.name }} Safe for Women Travelers?</h3>
+                <div class="section-content">
+                    {{ country.women_safety_info|safe }}
+                </div>
             </div>
             
-            <h3>Is {{ country.name }} Safe at Night?</h3>
             <div class="safety-section">
-                {{ country.night_safety_info|linebreaks }}
+                <h3>Is {{ country.name }} Safe at Night?</h3>
+                <div class="section-content">
+                    {{ country.night_safety_info|safe }}
+                </div>
             </div>
             
-            <h3>Is {{ country.name }} Safe for Solo Travelers?</h3>
             <div class="safety-section">
-                {{ country.solo_traveler_info|linebreaks }}
+                <h3>Is {{ country.name }} Safe for Solo Travelers?</h3>
+                <div class="section-content">
+                    {{ country.solo_traveler_info|safe }}
+                </div>
             </div>
             
-            <h3>Common Crimes and Scams That Tourists Should Be Aware Of</h3>
             <div class="safety-section">
-                {{ country.crime_info|linebreaks }}
+                <h3>Common Crimes and Scams That Tourists Should Be Aware Of</h3>
+                <div class="section-content">
+                    {{ country.crime_info|safe }}
+                </div>
             </div>
             
-            <h3>Is {{ country.name }}'s Public Transportation Safe?</h3>
             <div class="safety-section">
-                {{ country.transportation_safety_info|linebreaks }}
+                <h3>Is {{ country.name }}'s Public Transportation Safe?</h3>
+                <div class="section-content">
+                    {{ country.transportation_safety_info|safe }}
+                </div>
             </div>
             
-            <h3>Important Emergency Numbers in {{ country.name }}</h3>
             <div class="safety-section emergency-numbers">
-                {{ country.emergency_numbers|linebreaks }}
+                <h3>Important Emergency Numbers in {{ country.name }}</h3>
+                <div class="section-content">
+                    {{ country.emergency_numbers|safe }}
+                </div>
             </div>
         </div>
     {% else %}
@@ -241,16 +249,19 @@
         margin-bottom: 20px;
     }
     
-    .content h3 {
+    .safety-content h3 {
         color: #333;
-        margin-top: 30px;
-        border-left: 4px solid rgb(249, 181, 172);
-        padding-left: 10px;
+        margin-top: 0;
+        margin-bottom: 15px;
     }
     
     .safety-section {
-        margin-bottom: 20px;
-        line-height: 1.6;
+        margin-bottom: 30px;
+        border-left: 4px solid rgb(249, 181, 172);
+        padding-left: 15px;
+    }
+    .section-content {
+    line-height: 1.6;
     }
     
     .emergency-numbers {

@@ -21,6 +21,7 @@ GOOGLE_TRANSLATE_API_KEY = config('GOOGLE_TRANSLATE_API_KEY', default='')
 EXCHANGE_RATE_API_KEY = config('EXCHANGE_RATE_API_KEY', default='')
 TRANSITLAND_API_KEY = config('TRANSITLAND_API_KEY', default='')
 ANTHROPIC_API_KEY = config('ANTHROPIC_API_KEY', default='')
+
 GOOGLE_MAPS_LIBRARIES = [
     'places',    # For transit station search
     'geometry',  # For distance calculations
@@ -37,9 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'hotels',
+    
     'main',
-    'planes',
     'transport',
     'accounts',
     'destinations',
