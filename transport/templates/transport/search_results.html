@@ -17,17 +17,22 @@
     </div>
 
     <div class="search-container">
-        <h1>Public Transportation in {{ city }}</h1>
+        <h1>Public Transportation</h1>
         <form method="GET" action="{% url 'transport:search_transport' %}" class="search-form">
             <div class="input-container">
                 <input type="text" 
-                       name="city" 
-                       placeholder="Enter city name" 
-                       value="{{ request.GET.city }}"
+                       name="location" 
+                       placeholder="Enter city or address" 
+                       value="{{ request.GET.location }}"
                        required 
                        class="search-input">
             </div>
-            <button type="submit" class="search-button">Update Search</button>
+            
+            {% if request.GET.station_id %}
+                <input type="hidden" name="station_id" value="{{ request.GET.station_id }}">
+            {% endif %}
+            
+            <button type="submit" class="search-button">Find Transit</button>
         </form>
     </div>
 
@@ -37,88 +42,121 @@
 
     {% if stations %}
         <div class="results-container">
-            <!-- Map Section First -->
+            <!-- Location display -->
+            <div class="location-display">
+                <h2>Transit Options near {{ location }}</h2>
+            </div>
+            
+            <!-- Map Section -->
             <div class="map-section">
-                <h2>Transit Stations Map</h2>
                 <div id="map" class="map-container"></div>
             </div>
 
-            <!-- Subway Stations -->
-            {% if stations.subway %}
-                <div class="station-section">
-                    <h2>
-                        <i class="fas fa-subway"></i>
-                        Subway/Metro Stations
-                    </h2>
-                    <div class="stations-grid">
-                        {% for station in stations.subway %}
-                            <div class="station-card">
-                                <h3>{{ station.name }}</h3>
-                                <p>{{ station.address }}</p>
-                                {% if station.rating != 'N/A' %}
-                                    <div class="rating">
-                                        <span class="stars">★</span>
-                                        {{ station.rating|floatformat:1 }}
-                                    </div>
-                                {% endif %}
-                            </div>
+            <div class="content-columns">
+                <!-- Stations Column -->
+                <div class="stations-column">
+                    <div class="column-header">
+                        <h3>Nearby Transit Stations</h3>
+                    </div>
+                    
+                    <!-- Station List -->
+                    <div class="scrollable-content">
+                        {% for station_type, station_list in stations.items %}
+                            {% if station_list %}
+                                <div class="station-category">
+                                    <h4>
+                                        {% if station_type == 'subway' %}
+                                            <i class="fas fa-subway"></i> Subway/Metro
+                                        {% elif station_type == 'train' %}
+                                            <i class="fas fa-train"></i> Train
+                                        {% elif station_type == 'bus' %}
+                                            <i class="fas fa-bus"></i> Bus
+                                        {% else %}
+                                            <i class="fas fa-map-marker-alt"></i> Other
+                                        {% endif %}
+                                    </h4>
+                                    
+                                    {% for station in station_list %}
+                                        <div class="station-item {% if station.id == selected_station %}selected{% endif %}" 
+                                             data-station-id="{{ station.id }}" 
+                                             data-lat="{{ station.location.lat }}" 
+                                             data-lng="{{ station.location.lng }}"
+                                             onclick="selectStation(this)">
+                                            <div class="station-name">{{ station.name }}</div>
+                                            <div class="station-vicinity">{{ station.vicinity }}</div>
+                                            
+                                            <form method="GET" action="{% url 'transport:search_transport' %}">
+                                                <input type="hidden" name="location" value="{{ request.GET.location }}">
+                                                <input type="hidden" name="station_id" value="{{ station.id }}">
+                                                <button type="submit" class="view-schedule-btn">View Schedule</button>
+                                            </form>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         {% endfor %}
                     </div>
                 </div>
-            {% endif %}
-
-            <!-- Train Stations -->
-            {% if stations.train %}
-                <div class="station-section">
-                    <h2>
-                        <i class="fas fa-train"></i>
-                        Train Stations
-                    </h2>
-                    <div class="stations-grid">
-                        {% for station in stations.train %}
-                            <div class="station-card">
-                                <h3>{{ station.name }}</h3>
-                                <p>{{ station.address }}</p>
-                                {% if station.rating != 'N/A' %}
-                                    <div class="rating">
-                                        <span class="stars">★</span>
-                                        {{ station.rating|floatformat:1 }}
-                                    </div>
-                                {% endif %}
+                
+                <!-- Routes Column -->
+                <div class="routes-column">
+                    <div class="column-header">
+                        <h3>Transit Routes</h3>
+                    </div>
+                    
+                    <div class="scrollable-content">
+                        {% if transit_routes %}
+                            <div class="station-details">
+                                <h4>{{ transit_routes.station_name }}</h4>
+                                <p>{{ transit_routes.station_address }}</p>
                             </div>
-                        {% endfor %}
+                            
+                            <div class="routes-list">
+                                {% for route in transit_routes.routes %}
+                                    <div class="route-item" style="border-left: 5px solid {{ route.line_color }}">
+                                        <div class="route-header">
+                                            <div class="line-badge" style="background-color: {{ route.line_color }}; color: {{ route.line_text_color }}">
+                                                {{ route.line_short_name }}
+                                            </div>
+                                            <div class="line-name">{{ route.line_name }}</div>
+                                            
+                                            <div class="route-details">
+                                                <div class="route-info">
+                                                    <div class="info-label">Departure:</div>
+                                                    <div class="info-value">{{ route.departure_time }}</div>
+                                                </div>
+                                                
+                                                <div class="route-info">
+                                                    <div class="info-label">Toward:</div>
+                                                    <div class="info-value">{{ route.arrival_stop }}</div>
+                                                </div>
+                                                
+                                                <div class="route-info">
+                                                    <div class="info-label">Stops:</div>
+                                                    <div class="info-value">{{ route.num_stops }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <div class="no-routes">
+                                        <p>No upcoming departures found</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="no-station-selected">
+                                <p>Select a station to view upcoming departures</p>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
-            {% endif %}
-
-            <!-- Bus Stations -->
-            {% if stations.bus %}
-                <div class="station-section">
-                    <h2>
-                        <i class="fas fa-bus"></i>
-                        Bus Stations
-                    </h2>
-                    <div class="stations-grid">
-                        {% for station in stations.bus %}
-                            <div class="station-card">
-                                <h3>{{ station.name }}</h3>
-                                <p>{{ station.address }}</p>
-                                {% if station.rating != 'N/A' %}
-                                    <div class="rating">
-                                        <span class="stars">★</span>
-                                        {{ station.rating|floatformat:1 }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endif %}
+            </div>
         </div>
     {% else %}
         <div class="no-results">
-            <h2>No transit stations found</h2>
-            <p>Try searching for a different city or adjusting your search terms.</p>
+            <h2>Search for a location to find transit options</h2>
+            <p>Enter a city, address, or landmark to find nearby public transportation.</p>
         </div>
     {% endif %}
 </div>
@@ -149,18 +187,16 @@
 
     .search-container {
         background-color: rgb(249, 181, 172);
-        padding: 30px;
+        padding: 20px;
         border-radius: 10px;
-        margin-bottom: 30px;
-        text-align: center;
+        margin-bottom: 20px;
     }
 
     .search-form {
         display: flex;
         gap: 10px;
-        justify-content: center;
         max-width: 600px;
-        margin: 20px auto 0;
+        margin: 10px auto;
     }
 
     .input-container {
@@ -185,60 +221,157 @@
         font-size: 16px;
     }
 
-    .station-section {
-        margin: 40px 0;
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .station-section h2 {
-        color: #333;
+    .location-display {
         margin-bottom: 20px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid rgb(249, 181, 172);
-    }
-
-    .station-section h2 i {
-        margin-right: 10px;
-        color: rgb(249, 181, 172);
-    }
-
-    .stations-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 20px;
-    }
-
-    .station-card {
-        background: #f8f8f8;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .station-card h3 {
-        margin: 0 0 10px 0;
-        color: #333;
-    }
-
-    .rating {
-        margin-top: 10px;
-        color: #666;
-    }
-
-    .stars {
-        color: #ffd700;
-        margin-right: 5px;
+        text-align: center;
     }
 
     .map-container {
-        height: 400px;
+        height: 300px;
         border-radius: 10px;
         overflow: hidden;
-        margin-top: 20px;
+        margin-bottom: 20px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .content-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .stations-column, .routes-column {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .column-header {
+        padding: 15px;
+        background-color: rgb(249, 181, 172);
+        color: #333;
+    }
+
+    .column-header h3 {
+        margin: 0;
+    }
+
+    .scrollable-content {
+        height: 500px;
+        overflow-y: auto;
+        padding: 15px;
+    }
+
+    .station-category {
+        margin-bottom: 20px;
+    }
+
+    .station-category h4 {
+        margin: 0 0 10px 0;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .station-item {
+        padding: 12px;
+        margin-bottom: 10px;
+        background: #f8f8f8;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .station-item:hover {
+        background: #f0f0f0;
+    }
+
+    .station-item.selected {
+        background: #e6f7ff;
+        border-left: 3px solid #1890ff;
+    }
+
+    .station-name {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .station-vicinity {
+        font-size: 0.9em;
+        color: #666;
+        margin-bottom: 8px;
+    }
+
+    .view-schedule-btn {
+        padding: 5px 10px;
+        background: #333;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 0.8em;
+    }
+
+    .station-details {
+        padding: 15px;
+        background: #f8f8f8;
+        border-radius: 5px;
+        margin-bottom: 15px;
+    }
+
+    .station-details h4 {
+        margin: 0 0 5px 0;
+    }
+
+    .station-details p {
+        margin: 0;
+        color: #666;
+    }
+
+    .route-item {
+        margin-bottom: 15px;
+        background: white;
+        border-radius: 5px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .route-header {
+        padding: 15px;
+    }
+
+    .line-badge {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 3px;
+        font-weight: bold;
+        margin-right: 10px;
+    }
+
+    .line-name {
+        display: inline-block;
+        font-weight: bold;
+    }
+
+    .route-details {
+        margin-top: 10px;
+    }
+
+    .route-info {
+        display: flex;
+        margin-bottom: 5px;
+    }
+
+    .info-label {
+        width: 80px;
+        color: #666;
+    }
+
+    .no-routes, .no-station-selected {
+        padding: 30px;
+        text-align: center;
+        color: #666;
     }
 
     .error-message {
@@ -256,82 +389,188 @@
         border-radius: 10px;
         margin-top: 20px;
     }
+
+    @media (max-width: 768px) {
+        .content-columns {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 
 <!-- Add Font Awesome for icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
 {% if stations %}
-<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places"></script>
 <script>
-function initMap() {
-    const centerLat = parseFloat("{{ location.lat }}");
-    const centerLng = parseFloat("{{ location.lng }}");
+    let map;
+    let markers = [];
+    let infoWindows = [];
+    let selectedStationId = "{{ selected_station }}";
     
-    const map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 13,
-        center: { lat: centerLat, lng: centerLng },
-        styles: [
-            {
-                "featureType": "transit.station",
-                "elementType": "labels.icon",
-                "stylers": [{ "visibility": "on" }]
-            }
-        ]
-    });
-
-    const markers = {
-        subway: [],
-        train: [],
-        bus: [],
-        other: []
-    };
-
-    {% for type, stations_list in stations.items %}
-        {% for station in stations_list %}
-            const stationLat = parseFloat("{{ station.location.lat }}");
-            const stationLng = parseFloat("{{ station.location.lng }}");
-            
-            if (!isNaN(stationLat) && !isNaN(stationLng)) {
-                const marker = new google.maps.Marker({
-                    position: { lat: stationLat, lng: stationLng },
-                    map: map,
-                    title: "{{ station.name }}",
-                    icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        scale: 8,
-                        fillColor: "{{ type }}" === "subway" ? "#FF0000" :
-                                 "{{ type }}" === "train" ? "#0000FF" :
-                                 "{{ type }}" === "bus" ? "#00FF00" : "#808080",
-                        fillOpacity: 1,
-                        strokeWeight: 2,
-                        strokeColor: "#FFFFFF"
-                    }
-                });
-
-                const infowindow = new google.maps.InfoWindow({
-                    content: `
-                        <div style="padding: 10px;">
-                            <h3 style="margin: 0 0 5px 0;">${marker.title}</h3>
-                            <p style="margin: 0;">{{ station.address }}</p>
-                            {% if station.rating != 'N/A' %}
-                                <p style="margin: 5px 0 0 0;">Rating: {{ station.rating }}/5</p>
-                            {% endif %}
-                        </div>
-                    `
-                });
-
-                marker.addListener('click', () => {
-                    infowindow.open(map, marker);
-                });
-
-                markers["{{ type }}"].push(marker);
-            }
+    function initMap() {
+        // Get coordinates from context
+        const centerLat = {{ coordinates.lat|default:"0" }};
+        const centerLng = {{ coordinates.lng|default:"0" }};
+        
+        // Initialize map
+        map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 14,
+            center: { lat: centerLat, lng: centerLng },
+            mapTypeControl: false,
+            fullscreenControl: false,
+            streetViewControl: false,
+            zoomControl: true,
+        });
+        
+        // Add a marker for the searched location
+        new google.maps.Marker({
+            position: { lat: centerLat, lng: centerLng },
+            map: map,
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 10,
+                fillColor: "#FF0000",
+                fillOpacity: 0.8,
+                strokeWeight: 2,
+                strokeColor: "#FFFFFF"
+            },
+            title: "Your location"
+        });
+        
+        // Add markers for each station
+        addStationMarkers();
+    }
+    
+    function addStationMarkers() {
+        // Clear existing markers
+        clearMarkers();
+        
+        // Add markers for each station type
+        {% for station_type, station_list in stations.items %}
+            {% for station in station_list %}
+                addStationMarker(
+                    "{{ station.id }}", 
+                    "{{ station.name }}", 
+                    {{ station.location.lat }}, 
+                    {{ station.location.lng }}, 
+                    "{{ station_type }}", 
+                    "{{ station.vicinity }}"
+                );
+            {% endfor %}
         {% endfor %}
-    {% endfor %}
-}
-
-window.onload = initMap;
+    }
+    
+    function addStationMarker(id, name, lat, lng, type, vicinity) {
+        // Determine icon and color based on station type
+        let iconColor;
+        let iconSymbol;
+        
+        switch(type) {
+            case 'subway':
+                iconColor = "#E91E63";
+                iconSymbol = "M";
+                break;
+            case 'train':
+                iconColor = "#3F51B5";
+                iconSymbol = "T";
+                break;
+            case 'bus':
+                iconColor = "#4CAF50";
+                iconSymbol = "B";
+                break;
+            default:
+                iconColor = "#9E9E9E";
+                iconSymbol = "S";
+        }
+        
+        // Create marker
+        const marker = new google.maps.Marker({
+            position: { lat: lat, lng: lng },
+            map: map,
+            title: name,
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 8,
+                fillColor: iconColor,
+                fillOpacity: 1,
+                strokeWeight: 2,
+                strokeColor: "#FFFFFF"
+            },
+        });
+        
+        // Create info window
+        const infoWindow = new google.maps.InfoWindow({
+            content: `
+                <div style="padding: 10px; max-width: 250px;">
+                    <h3 style="margin: 0 0 5px 0;">${name}</h3>
+                    <p style="margin: 0 0 8px 0;">${vicinity}</p>
+                    <a href="?location={{ request.GET.location }}&station_id=${id}" 
+                       style="background: #333; color: white; padding: 5px 10px; 
+                       text-decoration: none; display: inline-block; border-radius: 3px;">
+                       View Schedule
+                    </a>
+                </div>
+            `
+        });
+        
+        // Add click listener
+        marker.addListener('click', () => {
+            // Close any open info windows
+            infoWindows.forEach(iw => iw.close());
+            
+            // Open this info window
+            infoWindow.open(map, marker);
+        });
+        
+        // Store marker and info window
+        markers.push(marker);
+        infoWindows.push(infoWindow);
+        
+        // If this is the selected station, open its info window
+        if (id === selectedStationId) {
+            infoWindow.open(map, marker);
+            map.setCenter({ lat: lat, lng: lng });
+        }
+    }
+    
+    function clearMarkers() {
+        markers.forEach(marker => marker.setMap(null));
+        markers = [];
+        infoWindows = [];
+    }
+    
+    function selectStation(element) {
+        // Get station details
+        const stationId = element.dataset.stationId;
+        const lat = parseFloat(element.dataset.lat);
+        const lng = parseFloat(element.dataset.lng);
+        
+        // Update selected station styling
+        document.querySelectorAll('.station-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+        element.classList.add('selected');
+        
+        // Center map on station
+        map.setCenter({ lat: lat, lng: lng });
+        map.setZoom(16);
+        
+        // Find and open the info window for this station
+        for (let i = 0; i < markers.length; i++) {
+            if (markers[i].getTitle() === element.querySelector('.station-name').textContent) {
+                // Close any open info windows
+                infoWindows.forEach(iw => iw.close());
+                
+                // Open this info window
+                infoWindows[i].open(map, markers[i]);
+                break;
+            }
+        }
+    }
+    
+    // Initialize map when page loads
+    window.onload = initMap;
 </script>
 {% endif %}
 {% endblock %}
