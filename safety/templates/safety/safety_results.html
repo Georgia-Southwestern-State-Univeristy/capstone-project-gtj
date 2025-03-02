@@ -105,6 +105,11 @@
             <a href="{% url 'safety:safety_search' %}" class="back-btn">Back to Search</a>
         </div>
     {% endif %}
+    {% if not country.id %}
+        <div class = "ai-disclaimer">
+            <p> The following information is a mixture of AI generated information and Human created information.</p>
+        </div>
+    {% endif %}
 </div>
 
 <style>
