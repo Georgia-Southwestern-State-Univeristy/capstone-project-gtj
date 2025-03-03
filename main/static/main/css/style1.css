@@ -27,24 +27,15 @@ header .username img {
     border-radius: 50%;
 }
 
-nav {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
+
 
 nav a {
     text-decoration: none;
     color: black;
-    background-color: rgb(226, 249, 184);
     padding: 0.5rem 1rem;
     border-radius: 20px;
 }
 
-nav a:hover {
-    background-color: rgb(187, 206, 138);
-}
 
 .search-bar {
     display: flex;

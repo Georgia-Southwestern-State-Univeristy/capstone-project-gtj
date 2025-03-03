@@ -2,6 +2,17 @@
 
 {% block content %}
 <style>
+    body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: rgb(249, 181, 172);
+}
+
+nav a:hover {
+    background-color: rgb(187, 206, 138);
+}
     .header {
         background-color: rgb(249, 181, 172);
         padding: 20px;
@@ -103,46 +114,7 @@
 </div>
 
 <div class="favorites-container">
-    <h1 class="page-title">Your Favorites</h1>
-
-    <div class="favorites-section">
-        <h2 class="section-title">Flights</h2>
-        {% if flights %}
-            <div class="favorites-grid">
-                {% for favorite in flights %}
-                    <div class="favorite-card">
-                        <div class="favorite-content">
-                            <h3>{{ favorite.item_data.departure }} → {{ favorite.item_data.arrival }}</h3>
-                            <p class="price-info">Price: {{ favorite.item_data.price }}</p>
-                        </div>
-                        <button onclick="removeFavorite('{{ favorite.id }}')" class="remove-btn">Remove from Favorites</button>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="empty-message">No favorite flights yet</div>
-        {% endif %}
-    </div>
-
-    <div class="favorites-section">
-        <h2 class="section-title">Hotels</h2>
-        {% if hotels %}
-            <div class="favorites-grid">
-                {% for favorite in hotels %}
-                    <div class="favorite-card">
-                        <div class="favorite-content">
-                            <h3>{{ favorite.item_data.name }}</h3>
-                            <p>Location: {{ favorite.item_data.location }}</p>
-                        </div>
-                        <button onclick="removeFavorite('{{ favorite.id }}')" class="remove-btn">Remove from Favorites</button>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="empty-message">No favorite hotels yet</div>
-        {% endif %}
-    </div>
-
+    <h1 class="page-title">Favorites</h1>
     <div class="favorites-section">
         <h2 class="section-title">Countries</h2>
         {% if countries %}
