@@ -5,6 +5,7 @@ body {
     background-image: url(MapOutlineImage.png);
     background-size: cover;
     background-position: center;
+    filter: brightness(2.5);
     font-family: Arial, sans-serif;
     display: flex;
     justify-content: center;
