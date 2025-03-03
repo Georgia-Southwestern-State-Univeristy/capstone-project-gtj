@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>NewIndex</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'main/assets/favicon.ico' %}" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{% static 'main/css/NewStyle.css' %}">
+
+  </head>
+  {% extends 'base.html' %}
+  {% load static %}
+  
+  {% block content %}
+  <body>
+    <div class="container">
+        <div class="login-box">
+            <h2>Welcome!</h2>
+            <form method="post" action="{% url 'accounts:login' %}">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input type="text" id="username" required>
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" id="password" required>
+              </div>
+
+            <div class="form-actions">
+                <button type="submit" class="login-btn">Login</button>
+                <a href="{% url 'accounts:signup' %}">Sign Up</a>
+            </div>
+            </form>
+        </div>
+        <div class="text-box">
+            GTJ GO! <br>
+            Ultimate Traveler <br>
+            Safety Assistant
+        </div>
+  </body>
+</html>
+{% endblock %}
+
+    
