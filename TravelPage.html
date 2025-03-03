@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>TravelPage</title>
+    <link rel="icon" type="image/x-icon" href="./assets/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="travel.css">
+
+  </head>
+  <body>
+    <div class="navbar">
+        <div class="profile"> User </div>
+        <div class="nav-links">
+            <a href="#">Transportation</a>
+            <a href="#">Translation</a>
+            <a href="#">Currency</a>
+            <a href="#">Favorites</a>
+        </div>
+        <div class="search-bar">
+            <input type="text" placeholder="Search Your Destination">
+        </div>
+    </div>
+    <div class="container">
+        <div class="tooltip" id="tooltip">United States</div>
+        <div class="map-area" onmouseover="showTooltip(event)" onmouseout="hideTooltip()" onclick="goToDestination()"></div>
+    </div>
+
+  </body>
+</html>

@@ -1,0 +1,51 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: rgb(249, 181, 172);
+    background-image: url(MapOutlineImage.png);
+    background-size: cover;
+    background-position: center;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+.container {
+    display: flex;
+    width: 80%;
+    max-width: 900px;
+    justify-content: space-between;
+    align-items: center;
+}
+.login-box {
+    width: 40%;
+}
+.login-box h2 {
+    margin-bottom: 20px;
+}
+label {
+    display: block;
+    margin: 10px 0 5px;
+}
+input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+.links {
+    margin-top: 10px;
+}
+.links a {
+    margin-right: 15px;
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+}
+.text-box {
+    width: 50%;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+}

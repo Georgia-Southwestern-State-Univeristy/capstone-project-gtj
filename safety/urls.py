@@ -1,9 +1,3 @@
-from django.urls import path
-from . import views
-
-app_name = 'safety'
-
-urlpatterns = [
-    path('', views.safety_search, name='safety_search'),
-    path('results/', views.safety_results, name='safety_results'),
-]
+version https://git-lfs.github.com/spec/v1
+oid sha256:da1f09cfc1a284e8b1dfcb9122c2dd372bf15e1ddea8ed5493da7d13acb9fa2e
+size 212
