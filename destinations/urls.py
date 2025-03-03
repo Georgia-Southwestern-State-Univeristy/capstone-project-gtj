@@ -1,9 +1,3 @@
-from django.urls import path
-from . import views
-
-app_name = 'destinations'
-
-urlpatterns = [
-    path('city-info/', views.city_info, name='city_info'),
-    path('api-debug/', views.api_debug, name='api_debug'),
-]
+version https://git-lfs.github.com/spec/v1
+oid sha256:bcd9793dfd8633c012c777281a8c283da45fbf689bf8a5eed4a0de16f2adb0e8
+size 212

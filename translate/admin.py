@@ -1,12 +1,3 @@
-from django.contrib import admin
-from .models import TranslationRequest
-
-@admin.register(TranslationRequest)
-class TranslationRequestAdmin(admin.ModelAdmin):
-    list_display = ('source_language', 'target_language', 'created_at', 'user')
-    list_filter = ('source_language', 'target_language', 'created_at')
-    search_fields = ('source_text', 'translated_text')
-    readonly_fields = ('source_text', 'translated_text', 'source_language', 'target_language', 'created_at')
-    
-    def has_add_permission(self, request):
-        return False
+version https://git-lfs.github.com/spec/v1
+oid sha256:1f2f6e9f500d72752d2cb5eecc25c2c871b7600558bab14a1603a28207f94118
+size 541

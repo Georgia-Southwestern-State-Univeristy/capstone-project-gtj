@@ -1,16 +1,3 @@
-"""
-ASGI config for GTJGO project.
-
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
-"""
-
-import os
-
-from django.core.asgi import get_asgi_application
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'GTJGO.settings')
-
-application = get_asgi_application()
+version https://git-lfs.github.com/spec/v1
+oid sha256:572489b8afb9244a57933cf2156c9a791d99618b51639a78db0e83daccc83d2c
+size 387

@@ -1,10 +1,3 @@
-from django.urls import path
-from . import views
-
-app_name = 'favorites'
-
-urlpatterns = [
-    path('', views.view_favorites, name='view_favorites'),
-    path('add/', views.add_favorite, name='add_favorite'),
-    path('remove/<int:favorite_id>/', views.remove_favorite, name='remove_favorite'),
-]
+version https://git-lfs.github.com/spec/v1
+oid sha256:e2f77dec065e6cbdb2bf65ea3815db17def514926ade30163fdd84dba81891cb
+size 295
