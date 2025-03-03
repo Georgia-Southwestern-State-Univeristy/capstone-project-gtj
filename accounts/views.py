@@ -1,33 +1,3 @@
-from django.shortcuts import render
-
-# Create your views here.
-from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth import login, logout
-
-def signup_view(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('main:home')
-    else:
-        form = UserCreationForm()
-    return render(request, 'accounts/signup.html', {'form': form})
-
-def login_view(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            return redirect('main:home')
-    else:
-        form = AuthenticationForm()
-    return render(request, 'accounts/login.html', {'form': form})
-
-def logout_view(request):
-    if request.method == 'POST':
-        logout(request)
-    return redirect('main:home')
+version https://git-lfs.github.com/spec/v1
+oid sha256:06605e4b83c0ae6d42350719feecbb69273b66628e4ca2cb8929259092bd0d31
+size 1057

@@ -1,0 +1,31 @@
+# Django and REST framework
+Django>=4.0.0,<5.0.0
+djangorestframework>=3.13.0,<4.0.0
+djangorestframework-simplejwt>=5.0.0,<6.0.0
+
+# Database
+psycopg2>=2.9.3
+psycopg2-binary>=2.9.3
+
+# Environment variables
+python-decouple>=3.6
+
+# Data processing
+pandas>=1.4.0
+openpyxl>=3.0.9
+xlrd>=2.0.1
+
+# API clients
+requests>=2.27.1
+amadeus>=5.0.0
+
+# Currency exchange
+py-exchangerate-api>=1.0.0
+
+# Utilities
+Pillow>=9.0.0  # For image processing
+django-cors-headers>=3.11.0  # For CORS support
+django-filter>=21.1  # For filtering in DRF
+markdown>=3.3.6  # For Markdown support in DRF browsable API
+gunicorn>=20.1.0  # For production deployment
+whitenoise>=6.0.0  # For serving static files
