@@ -17,7 +17,7 @@ GTJ Go also values safe transportation by recommending the safest and most affor
 GTJGo works by using an up-to-date safety rating algorithm that takes data from thousands of cities around the world and filters them through a formula that tests for safety on multiple levels including:
 * Health and Safety
 * Women's Safety
-* LGBTQ+ Discrimination
+* Crime Rates and Statistics 
 * Political Climate
 * Solo Traverler Ratings 
 

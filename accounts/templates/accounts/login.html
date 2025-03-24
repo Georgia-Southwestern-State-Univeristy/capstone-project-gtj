@@ -7,4 +7,78 @@
     {{ form.as_p }}
     <button type="submit">Login</button>
 </form>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: rgb(249, 181, 172);
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .container {
+        display: flex;
+        width: 80%;
+        max-width: 900px;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .login-box {
+        width: 40%;
+    }
+
+    .login-box h2 {
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        margin: 10px 0 5px;
+    }
+
+    input {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0 20px;
+        border: none;
+        border-radius: 5px;
+    }
+
+    .button {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        background-color: rgb(249, 181, 172);
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .links {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+
+
+
+    .text-box {
+        width: 40%;
+        text-align: center;
+    }
+
+    .text-box h1 {
+        font-size: 50px;
+        margin-bottom: 20px;
+    }
+
+    .text-box p {
+        font-size: 20px;
+    }
+</style>
 {% endblock %}
