@@ -1,0 +1,45 @@
+
+
+   svg path {
+        margin: 0;
+        padding: 0;
+        cursor: pointer;
+        fill: #ececec;
+        stroke: black;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        transition: fill 0.2s ease-in-out;
+    }
+
+    body {
+        overflow-x: hidden;
+        overflow-y: hidden;
+        background-color: rgb(39, 44, 67);
+    }
+
+    #name {
+        position: absolute;
+        background-color: rgb(255, 255, 255);
+        width: fit-content;
+        opacity: 0;
+        border-radius: 5px;
+        border: 3px solid rgb(245, 128, 128);
+        padding: 0px 5px;
+        font-size: 1.5rem;
+        pointer-events: none;
+
+    }
+
+
+    #timeCont{
+        background-color: white;
+        width: fit-content;
+        font-size: 1.5rem;
+        padding: 5px 5px;
+        border-radius: 5px;
+        border: 3px solid rgb(245, 128, 128);        
+    }
+    svg path {
+        cursor: pointer;
+    }
+
