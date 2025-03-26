@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-<div class="packing-container">
+<div class="packer-container">
     <div class="header">
         <div>GTJGo Logo</div>
         <div class="nav">
@@ -11,99 +11,93 @@
             <a href="{% url 'currency:converter' %}">Currency</a>
             <a href="{% url 'safety:safety_search' %}">Safety</a>
             <a href="{% url 'transport:home' %}">Rentals</a>
+            <a href="{% url 'packing:home' %}">Packing</a>
             {% if user.is_authenticated %}
                 <a href="{% url 'favorites:view_favorites' %}">Favorites</a>
             {% endif %}
-            <a href="{% url 'packing:home' %}" class="active">Packing Guide</a>
         </div>
     </div>
 
-    <div class="packing-hero">
-        <h1>AI-Powered Packing & Itinerary Guide</h1>
-        <p>Tell us where you're going, and we'll create a personalized packing list and itinerary based on weather forecasts and destination type.</p>
-    </div>
-
-    <div class="packing-form-container">
-        <form method="POST" action="{% url 'packing:generate' %}" class="packing-form">
+    <div class="form-container">
+        <h1>Generate Your Weather-Based Packing List & Itinerary</h1>
+        <p>Tell us where and when you're traveling, and we'll create a personalized packing list and suggested itinerary based on weather forecasts!</p>
+        
+        <form method="POST" class="packing-form">
             {% csrf_token %}
             
-            <div class="form-group">
-                <label for="destination-input">Destination</label>
-                {{ form.destination }}
-                <small>Enter a specific location (e.g., "Appalachian Mountains", "Paris", "Phuket")</small>
-            </div>
-            
-            <div class="form-group">
-                <label>Travel Dates</label>
-                <div class="dates-container">
-                    <div class="date-input">
-                        <label for="id_departure_date">Departure</label>
-                        {{ form.departure_date }}
-                    </div>
-                    <div class="date-input">
-                        <label for="id_return_date">Return (Optional)</label>
-                        {{ form.return_date }}
-                    </div>
+            {% if form.non_field_errors %}
+                <div class="error-message">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
                 </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="{{ form.destination.id_for_label }}">Destination (City, Country)</label>
+                {{ form.destination }}
+                {% if form.destination.errors %}
+                    <div class="error-message">{{ form.destination.errors }}</div>
+                {% endif %}
             </div>
             
             <div class="form-group">
-                <label for="id_trip_type">Trip Type</label>
-                {{ form.trip_type }}
+                <label for="{{ form.start_date.id_for_label }}">Start Date</label>
+                {{ form.start_date }}
+                {% if form.start_date.errors %}
+                    <div class="error-message">{{ form.start_date.errors }}</div>
+                {% endif %}
             </div>
             
-            <div class="form-actions">
-                <button type="submit" class="submit-btn">Generate My Travel Plan</button>
+            <div class="form-group">
+                <label for="{{ form.end_date.id_for_label }}">End Date</label>
+                {{ form.end_date }}
+                {% if form.end_date.errors %}
+                    <div class="error-message">{{ form.end_date.errors }}</div>
+                {% endif %}
             </div>
+            
+            <button type="submit" class="submit-button">Generate Packing List & Itinerary</button>
         </form>
     </div>
     
-    <div class="features-section">
-        <h2>Why Use Our Travel Planner?</h2>
-        
+    <div class="features-container">
+        <h2>Our Packing Assistant Features</h2>
         <div class="features-grid">
             <div class="feature-card">
-                <div class="feature-icon">
-                    <img src="https://via.placeholder.com/64" alt="Weather">
-                </div>
-                <h3>Weather-Based Planning</h3>
-                <p>Our AI analyzes real-time weather forecasts for your destination to recommend appropriate clothing and activities.</p>
+                <i class="fas fa-cloud-sun feature-icon"></i>
+                <h3>Weather-Based Recommendations</h3>
+                <p>Get packing suggestions tailored to the weather forecast for your specific travel dates.</p>
             </div>
             
             <div class="feature-card">
-                <div class="feature-icon">
-                    <img src="https://via.placeholder.com/64" alt="Checklist">
-                </div>
-                <h3>Custom Packing Lists</h3>
-                <p>Get a personalized packing list tailored to your destination, trip length, and expected weather conditions.</p>
+                <i class="fas fa-suitcase feature-icon"></i>
+                <h3>Comprehensive Packing List</h3>
+                <p>Never forget essential items with our AI-generated packing lists organized by category.</p>
             </div>
             
             <div class="feature-card">
-                <div class="feature-icon">
-                    <img src="https://via.placeholder.com/64" alt="Itinerary">
-                </div>
-                <h3>Daily Itinerary Suggestions</h3>
-                <p>Receive day-by-day activity recommendations based on local attractions and forecasted weather.</p>
+                <i class="fas fa-map-marked-alt feature-icon"></i>
+                <h3>Custom Itinerary Suggestions</h3>
+                <p>Receive daily activity recommendations based on local attractions and weather conditions.</p>
             </div>
             
             <div class="feature-card">
-                <div class="feature-icon">
-                    <img src="https://via.placeholder.com/64" alt="Save">
-                </div>
-                <h3>Save & Check Off Items</h3>
-                <p>Save your list to your account and check off items as you pack them to stay organized before your trip.</p>
+                <i class="fas fa-print feature-icon"></i>
+                <h3>Print-Ready Format</h3>
+                <p>Easily print your packing list and itinerary to take with you on your trip.</p>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    .packing-container {
+    .packer-container {
         max-width: 1200px;
         margin: 0 auto;
         padding: 20px;
     }
-    
+
     .header {
         background-color: rgb(249, 181, 172);
         padding: 15px;
@@ -113,174 +107,123 @@
         border-radius: 10px;
         margin-bottom: 30px;
     }
-    
+
     .nav a {
         margin: 0 15px;
         text-decoration: none;
         color: black;
         font-weight: bold;
     }
-    
-    .nav a.active {
-        text-decoration: underline;
-    }
-    
-    .packing-hero {
-        text-align: center;
-        padding: 40px 20px;
-        margin-bottom: 30px;
+
+    .form-container {
         background-color: rgb(249, 181, 172);
-        border-radius: 10px;
-        color: #333;
-    }
-    
-    .packing-hero h1 {
-        font-size: 2.5rem;
-        margin-bottom: 15px;
-    }
-    
-    .packing-hero p {
-        font-size: 1.2rem;
-        max-width: 800px;
-        margin: 0 auto;
-    }
-    
-    .packing-form-container {
-        background-color: white;
         padding: 30px;
         border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        margin-bottom: 40px;
+        margin-bottom: 30px;
     }
-    
+
+    .form-container h1 {
+        color: #333;
+        margin-top: 0;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .form-container p {
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
     .packing-form {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
+        max-width: 600px;
+        margin: 0 auto;
     }
-    
+
     .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
+        margin-bottom: 20px;
     }
-    
+
     .form-group label {
+        display: block;
+        margin-bottom: 8px;
         font-weight: bold;
-        font-size: 1.1rem;
     }
-    
-    .form-group small {
-        color: #666;
-        font-size: 0.9rem;
-    }
-    
-    .form-control, input[type="text"], input[type="date"], select {
+
+    .form-group input {
+        width: 100%;
         padding: 12px;
         border: 1px solid #ddd;
         border-radius: 5px;
-        font-size: 1rem;
+        font-size: 16px;
     }
-    
-    .dates-container {
-        display: flex;
-        gap: 15px;
-    }
-    .date-input {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-    }
-    
-    .date-input label {
-        font-size: 0.9rem;
-        font-weight: normal;
-    }
-    
-    .form-actions {
-        margin-top: 10px;
-    }
-    
-    .submit-btn {
-        background-color: rgb(249, 181, 172);
-        color: #333;
+
+    .submit-button {
+        background-color: #333;
+        color: white;
         border: none;
-        padding: 15px 25px;
-        font-size: 1.1rem;
-        font-weight: bold;
+        padding: 12px 24px;
         border-radius: 5px;
+        font-size: 16px;
         cursor: pointer;
-        transition: background-color 0.3s;
+        width: 100%;
+        margin-top: 20px;
     }
-    
-    .submit-btn:hover {
-        background-color: rgb(235, 167, 158);
+
+    .error-message {
+        color: #c00;
+        background-color: #fee;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 20px;
     }
-    
-    .features-section {
-        padding: 20px;
+
+    .features-container {
+        padding: 30px;
+        background-color: white;
+        border-radius: 10px;
     }
-    
-    .features-section h2 {
+
+    .features-container h2 {
         text-align: center;
         margin-bottom: 30px;
-        font-size: 2rem;
+        color: #333;
     }
-    
+
     .features-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 30px;
+        gap: 20px;
     }
-    
+
     .feature-card {
-        background-color: white;
-        padding: 25px;
+        padding: 20px;
+        background-color: #f8f8f8;
         border-radius: 10px;
         text-align: center;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-    
+
     .feature-icon {
-        width: 64px;
-        height: 64px;
-        margin: 0 auto 15px;
+        font-size: 2.5rem;
+        color: rgb(249, 181, 172);
+        margin-bottom: 15px;
     }
-    
-    .feature-icon img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
-    
+
     .feature-card h3 {
         margin-bottom: 10px;
-        font-size: 1.3rem;
+        color: #333;
     }
-    
+
     .feature-card p {
         color: #666;
-        font-size: 0.95rem;
     }
-    
+
     @media (max-width: 768px) {
-        .header {
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .dates-container {
-            flex-direction: column;
-        }
-        
-        .packing-hero h1 {
-            font-size: 1.8rem;
-        }
-        
-        .packing-hero p {
-            font-size: 1rem;
+        .features-grid {
+            grid-template-columns: 1fr;
         }
     }
 </style>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %}
