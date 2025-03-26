@@ -75,33 +75,6 @@
                 <p>Find subway, train, bus stations, and more in one place</p>
             </div>
         </div>
-    </div>
-
-    <div class="popular-cities">
-        <h2>Popular Transit Cities</h2>
-        
-        <div class="cities-grid">
-            <div class="city-card" onclick="searchCity('New York, NY, USA')">
-                <div class="city-image" style="background-image: url('{% static 'transport/images/newyork.jpg' %}')"></div>
-                <div class="city-name">New York</div>
-            </div>
-            
-            <div class="city-card" onclick="searchCity('London, UK')">
-                <div class="city-image" style="background-image: url('{% static 'transport/images/london.jpg' %}')"></div>
-                <div class="city-name">London</div>
-            </div>
-            
-            <div class="city-card" onclick="searchCity('Tokyo, Japan')">
-                <div class="city-image" style="background-image: url('{% static 'transport/images/tokyo.jpg' %}')"></div>
-                <div class="city-name">Tokyo</div>
-            </div>
-            
-            <div class="city-card" onclick="searchCity('Paris, France')">
-                <div class="city-image" style="background-image: url('{% static 'transport/images/paris.jpg' %}')"></div>
-                <div class="city-name">Paris</div>
-            </div>
-        </div>
-    </div>
 
     <div class="how-it-works">
         <h2>How It Works</h2>
@@ -135,6 +108,12 @@
 </div>
 
 <style>
+     body {
+        background-color: rgb(249, 181, 172);
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
     .transport-container {
         max-width: 1200px;
         margin: 0 auto;

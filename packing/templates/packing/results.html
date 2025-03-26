@@ -1,0 +1,604 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="packing-container">
+    <div class="header">
+        <div>GTJGo Logo</div>
+        <div class="nav">
+            <a href="{% url 'main:home' %}">Home</a>
+            <a href="{% url 'translate:translator' %}">Translator</a>
+            <a href="{% url 'currency:converter' %}">Currency</a>
+            <a href="{% url 'safety:safety_search' %}">Safety</a>
+            <a href="{% url 'transport:home' %}">Rentals</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'favorites:view_favorites' %}">Favorites</a>
+            {% endif %}
+            <a href="{% url 'packing:home' %}" class="active">Packing Guide</a>
+        </div>
+    </div>
+
+    <div class="results-header">
+        <h1>Your Travel Plan for {{ destination }}</h1>
+        <div class="trip-info">
+            <div class="trip-dates">
+                <p><strong>Departure:</strong> {{ departure_date|date:"F j, Y" }}</p>
+                {% if return_date %}
+                    <p><strong>Return:</strong> {{ return_date|date:"F j, Y" }}</p>
+                {% endif %}
+            </div>
+            <div class="trip-details">
+                <p><strong>Trip Type:</strong> {{ trip_type }}</p>
+                <p><strong>Destination Type:</strong> {{ destination_type }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="results-container">
+        <!-- Weather Overview Section -->
+        <div class="weather-overview">
+            <h2>Weather Forecast</h2>
+            <div class="weather-cards">
+                {% for day in weather_data.daily_forecasts %}
+                    <div class="weather-card">
+                        <div class="weather-date">{{ day.date|date:"D, M j" }}</div>
+                        <div class="weather-icon">
+                            <img src="https://openweathermap.org/img/wn/{{ day.icon }}@2x.png" alt="{{ day.condition }}">
+                        </div>
+                        <div class="weather-temp">{{ day.avg_temp }}°C</div>
+                        <div class="weather-condition">{{ day.condition }}</div>
+                        <div class="weather-details">
+                            <span title="Humidity"><i class="fas fa-tint"></i> {{ day.avg_humidity }}%</span>
+                            <span title="Wind Speed"><i class="fas fa-wind"></i> {{ day.avg_wind_speed }} m/s</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="tabs-container">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="openTab(event, 'packingList')">Packing List</button>
+                <button class="tab-btn" onclick="openTab(event, 'itinerary')">Daily Itinerary</button>
+            </div>
+
+            <!-- Packing List Tab -->
+            <div id="packingList" class="tab-content active">
+                <div class="packing-list">
+                    {% for category, items in packing_items.items %}
+                        {% if items %}
+                            <div class="category-section">
+                                <h3>{{ category }}</h3>
+                                <div class="items-list">
+                                    {% for item in items %}
+                                        <div class="item">
+                                            <label class="checkbox-container">
+                                                <input type="checkbox" class="item-checkbox">
+                                                <span class="checkmark"></span>
+                                                {{ item.name }}
+                                                {% if item.essential %}
+                                                    <span class="essential-tag">Essential</span>
+                                                {% endif %}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Itinerary Tab -->
+            <div id="itinerary" class="tab-content">
+                <div class="itinerary-list">
+                    {% for day in itinerary %}
+                        <div class="itinerary-day">
+                            <div class="day-header">
+                                <h3>Day {{ forloop.counter }}: {{ day.date|date:"l, F j" }}</h3>
+                                <div class="day-weather">
+                                    <img src="https://openweathermap.org/img/wn/{{ day.weather.icon }}@2x.png" alt="{{ day.weather.condition }}">
+                                    <span>{{ day.weather.temp }}°C | {{ day.weather.condition }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="day-activities">
+                                <div class="activity-section">
+                                    <h4><i class="fas fa-sun"></i> Morning</h4>
+                                    <ul>
+                                        {% for activity in day.morning %}
+                                            <li>{{ activity }}</li>
+                                        {% empty %}
+                                            <li>No activities suggested</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                
+                                <div class="activity-section">
+                                    <h4><i class="fas fa-cloud-sun"></i> Afternoon</h4>
+                                    <ul>
+                                        {% for activity in day.afternoon %}
+                                            <li>{{ activity }}</li>
+                                        {% empty %}
+                                            <li>No activities suggested</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                
+                                <div class="activity-section">
+                                    <h4><i class="fas fa-moon"></i> Evening</h4>
+                                    <ul>
+                                        {% for activity in day.evening %}
+                                            <li>{{ activity }}</li>
+                                        {% empty %}
+                                            <li>No activities suggested</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Button -->
+    <div class="print-container">
+        <button onclick="window.print()" class="print-btn"><i class="fas fa-print"></i> Print Your Travel Plan</button>
+        <a href="{% url 'packing:home' %}" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Packing Guide</a>
+    </div>
+</div>
+
+<style>
+    .packing-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .header {
+        background-color: rgb(249, 181, 172);
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+    
+    .nav a {
+        margin: 0 15px;
+        text-decoration: none;
+        color: black;
+        font-weight: bold;
+    }
+    
+    .nav a.active {
+        text-decoration: underline;
+    }
+    
+    .results-header {
+        text-align: center;
+        padding: 30px 20px;
+        margin-bottom: 30px;
+        background-color: rgb(249, 181, 172);
+        border-radius: 10px;
+        color: #333;
+    }
+    
+    .results-header h1 {
+        font-size: 2.2rem;
+        margin-bottom: 20px;
+    }
+    
+    .trip-info {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+    }
+    
+    .trip-dates, .trip-details {
+        text-align: left;
+    }
+    
+    .trip-dates p, .trip-details p {
+        margin: 5px 0;
+        font-size: 1.1rem;
+    }
+    
+    .results-container {
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        overflow: hidden;
+        margin-bottom: 30px;
+    }
+    
+    .weather-overview {
+        padding: 25px;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .weather-overview h2 {
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    .weather-cards {
+        display: flex;
+        overflow-x: auto;
+        gap: 15px;
+        padding-bottom: 10px;
+    }
+    
+    .weather-card {
+        min-width: 140px;
+        background-color: white;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .weather-date {
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+    
+    .weather-icon {
+        margin: 5px 0;
+    }
+    
+    .weather-icon img {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .weather-temp {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 5px 0;
+    }
+    
+    .weather-condition {
+        margin-bottom: 8px;
+    }
+    
+    .weather-details {
+        display: flex;
+        justify-content: space-around;
+        font-size: 0.9rem;
+        color: #666;
+    }
+    
+    .tabs-container {
+        padding: 0;
+    }
+    
+    .tabs {
+        display: flex;
+        background-color: #f1f1f1;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .tab-btn {
+        background-color: inherit;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 15px 20px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        flex: 1;
+    }
+    
+    .tab-btn:hover {
+        background-color: #ddd;
+    }
+    
+    .tab-btn.active {
+        background-color: white;
+        border-bottom: 3px solid rgb(249, 181, 172);
+    }
+    
+    .tab-content {
+        display: none;
+        padding: 30px;
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+    
+    /* Packing List Styles */
+    .packing-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 25px;
+    }
+    
+    .category-section {
+        margin-bottom: 30px;
+    }
+    
+    .category-section h3 {
+        border-bottom: 2px solid rgb(249, 181, 172);
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .items-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .item {
+        position: relative;
+    }
+    
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        font-size: 1.1rem;
+        user-select: none;
+        padding: 5px 0;
+    }
+    
+    .checkbox-container input {
+        position: relative;
+    }
+    .checkbox-container input {
+        position: absolute;
+        opacity: 0;
+        height: 0;
+        width: 0;
+    }
+    
+    .checkmark {
+        height: 20px;
+        width: 20px;
+        background-color: #eee;
+        border-radius: 3px;
+        margin-right: 10px;
+        display: inline-block;
+        position: relative;
+    }
+    
+    .checkbox-container:hover .checkmark {
+        background-color: #ccc;
+    }
+    
+    .checkbox-container input:checked ~ .checkmark {
+        background-color: rgb(249, 181, 172);
+    }
+    
+    .checkmark:after {
+        content: "";
+        position: absolute;
+        display: none;
+    }
+    
+    .checkbox-container input:checked ~ .checkmark:after {
+        display: block;
+    }
+    
+    .checkbox-container .checkmark:after {
+        left: 7px;
+        top: 3px;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+    }
+    
+    .essential-tag {
+        background-color: #ffecb3;
+        color: #333;
+        font-size: 0.8rem;
+        padding: 2px 6px;
+        border-radius: 3px;
+        margin-left: 8px;
+    }
+    
+    /* Itinerary Styles */
+    .itinerary-list {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+    
+    .itinerary-day {
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .day-header {
+        background-color: rgb(249, 181, 172);
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .day-header h3 {
+        margin: 0;
+        color: #333;
+    }
+    
+    .day-weather {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .day-weather img {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .day-activities {
+        padding: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+    
+    .activity-section {
+        background-color: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .activity-section h4 {
+        margin-top: 0;
+        color: #333;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 8px;
+    }
+    
+    .activity-section i {
+        margin-right: 5px;
+        color: rgb(249, 181, 172);
+    }
+    
+    .activity-section ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+    
+    .activity-section li {
+        margin: 8px 0;
+    }
+    
+    /* Print Button */
+    .print-container {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin: 20px 0;
+    }
+    
+    .print-btn, .back-btn {
+        padding: 12px 25px;
+        font-size: 1.1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .print-btn {
+        background-color: #333;
+        color: white;
+        border: none;
+    }
+    
+    .back-btn {
+        background-color: #f1f1f1;
+        color: #333;
+        border: 1px solid #ddd;
+    }
+    
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+        .header {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .trip-info {
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .packing-list {
+            grid-template-columns: 1fr;
+        }
+        
+        .day-header {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .day-activities {
+            grid-template-columns: 1fr;
+        }
+        
+        .print-container {
+            flex-direction: column;
+        }
+    }
+    
+    /* Print Styles */
+    @media print {
+        .header, .print-container {
+            display: none !important;
+        }
+        
+        .packing-container {
+            padding: 0;
+            margin: 0;
+        }
+        
+        .results-header, .results-container {
+            box-shadow: none;
+            border-radius: 0;
+        }
+        
+        .tab-content {
+            display: block !important;
+            padding: 0;
+        }
+        
+        .itinerary-day {
+            page-break-inside: avoid;
+            margin-top: 20px;
+        }
+        
+        .weather-card {
+            page-break-inside: avoid;
+        }
+        
+        .category-section {
+            page-break-inside: avoid;
+        }
+    }
+</style>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+<script>
+    // Tab navigation
+    function openTab(evt, tabName) {
+        var i, tabContent, tabButtons;
+        
+        // Hide all tab content
+        tabContent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabContent.length; i++) {
+            tabContent[i].classList.remove("active");
+        }
+        
+        // Remove "active" class from all tab buttons
+        tabButtons = document.getElementsByClassName("tab-btn");
+        for (i = 0; i < tabButtons.length; i++) {
+            tabButtons[i].classList.remove("active");
+        }
+        
+        // Show the current tab and add "active" class to the button
+        document.getElementById(tabName).classList.add("active");
+        evt.currentTarget.classList.add("active");
+    }
+</script>
+{% endblock %}

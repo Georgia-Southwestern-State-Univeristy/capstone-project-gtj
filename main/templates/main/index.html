@@ -36,12 +36,7 @@
         {% endif %}
     </nav>
    
-    <div class="search-bar">
-        <form method="GET" action="{% url 'destinations:city_info' %}">
-            <input type="text" name="query" placeholder="Search for a city or country...">
-            <button type="submit">Search</button>
-        </form>
-    </div>
+   
     <div class="main-content">
         <div class="card">
             <img src="{% static 'main/images/vatican.jpg' %}" alt="Vatican">
