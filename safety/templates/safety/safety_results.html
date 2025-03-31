@@ -53,8 +53,38 @@
                 <div class="label">Crime</div>
                 <img src="{% static 'safety/images/prevention.png' %}" alt="prevention" onerror="this.src='https://via.placeholder.com/30x30?text=🛡️'">
             </div>
+            <div class="stat-item">
+                <div class="score">{{ country.user_rating|floatformat:1 }}%</div>
+                <div class="count">({{ country.user_rating_count }})</div>
+                <div class="label">User Rating</div>
+                <img src="{% static 'safety/images/prevention.png' %}" alt="prevention" onerror="this.src='https://via.placeholder.com/30x30?text=🛡️'">
+            </div>
         </div>
-        
+        {% if user.is_authenticated %
+            <div class="user-rating-form">
+                <h3>Rate this Country</h3>
+                <div class="star-rating">
+                    <span class="star" data-value="1">&#9733;</span>
+                    <span class="star" data-value="2">&#9733;</span>
+                    <span class="star" data-value="3">&#9733;</span>
+                    <span class="star" data-value="4">&#9733;</span>
+                    <span class="star" data-value="5">&#9733;</span>
+                </div>
+                <form id="rating-form" method="POST" action="{% url 'safety:submit_rating' country.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="rating" id="rating-input">
+                    <input type="hidden" name="country_id" value="{{ country.id }}">
+                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                    <textarea name="comment" id="comment" placeholder="Leave a comment (optional)" rows="4"></textarea>
+                    <button type="submit" class="submit-rating">Submit Rating</button>
+                </form>
+                <div class="rating-message" id="rating-message"></div>  
+            </div>
+        {% else %}
+            <div class="login-prompt">
+                <p>Please <a href="{% url 'login' %}">log in</a> to rate this country.</p>
+            </div>
+        {% endif %}
         <div class="content">
             <h2>Is {{ country.name }} Safe? A Tourist's Guide to Safety and Security</h2>
             
@@ -106,6 +136,20 @@
                     {{ country.emergency_numbers|safe }}
                 </div>
             </div>
+            <div class="user-rating">
+                <h3>User Ratings and Comments</h3>
+                {% if country.user_ratings %}
+                    <ul>
+                        {% for rating in country.user_ratings %}
+                            <li>
+                                <strong>{{ rating.user.username }}:</strong> {{ rating.rating }} stars
+                                <p>{{ rating.comment }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No ratings yet. Be the first to rate!</p>
+                {% endif %}
         </div>
     {% else %}
         <div class="error-box">
@@ -300,5 +344,157 @@
             margin-bottom: 10px;
         }
     }
+    .star-empty {
+        color: #ccc;
+    }
+    .star-filled {
+        color: #f39c12;
+    }
+    .user-reviews{
+        margin-top: 20px;
+    }
+    .user-rating-form {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin-top: 20px;
+    }
+    .star-rating {
+        display: flex;
+        cursor: pointer;
+        margin-bottom: 10px;
+    }
+    .star{
+        font-size: 30px;
+        color: #ccc;
+        margin-right: 5px;
+    }
+    .star:hover, .star:hover ~ .star {
+        color: #f39c12;
+    }
+    .rating-comment {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-bottom:15px;
+        min-height:100px;
+    }
+    .submit-rating {
+        background-color: #e38b8b;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .rating-message.success {
+        color: green;
+        margin-top: 10px;
+    }
+    .rating-message.error {
+        color: red;
+        margin-top: 10px;
+    }
+    .login-prompt {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin-top: 20px;
+        text-align: center;
+    }
+    .review-header {
+        font-size: 1.5em;
+        margin-bottom: 10px;
+    }
+    .reviewer{
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .review-date{
+        font-size: 0.9em;
+        color: #999;
+    }
+    .no-reviews{
+        font-style: italic;
+        color: #999;
+    }
 </style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Star rating functionality
+    const stars = document.querySelectorAll('.star');
+    const ratingInput = document.getElementById('ratingValue');
+    
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const value = this.getAttribute('data-value');
+            ratingInput.value = value;
+            
+            // Update visual selection
+            stars.forEach(s => {
+                if (s.getAttribute('data-value') <= value) {
+                    s.classList.add('selected');
+                } else {
+                    s.classList.remove('selected');
+                }
+            });
+        });
+    });
+    
+    // Form submission
+    const ratingForm = document.getElementById('ratingForm');
+    const ratingMessage = document.getElementById('ratingMessage');
+    
+    if (ratingForm) {
+        ratingForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!ratingInput.value) {
+                ratingMessage.textContent = 'Please select a rating';
+                ratingMessage.className = 'rating-message error';
+                return;
+            }
+            
+            const formData = new FormData(ratingForm);
+            
+            fetch('{% url "safety:submit_safety_rating" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    ratingMessage.textContent = data.message;
+                    ratingMessage.className = 'rating-message success';
+                    
+                    // Update displayed average rating
+                    document.querySelector('.user-rating .rating-score').textContent = 
+                        parseFloat(data.avg_rating).toFixed(1);
+                    document.querySelector('.user-rating .rating-count').textContent = 
+                        `(${data.count} ratings)`;
+                    
+                    // Optional: Reload the page to show the new review
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    ratingMessage.textContent = data.message;
+                    ratingMessage.className = 'rating-message error';
+                }
+            })
+            .catch(error => {
+                ratingMessage.textContent = 'An error occurred';
+                ratingMessage.className = 'rating-message error';
+                console.error('Error:', error);
+            });
+        });
+    }
+});
+</script>
 {% endblock %}
