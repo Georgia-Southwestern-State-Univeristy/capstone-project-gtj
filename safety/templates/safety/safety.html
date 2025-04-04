@@ -3,19 +3,6 @@
 
 {% block content %}
 <div class="container">
-    <div class="navbar">
-        <span>GTJGo Logo</span>
-        <div>
-            <a href="{% url 'main:home' %}">Home</a>
-            <a href="{% url 'transport:home' %}">Transportation</a>
-            <a href="{% url 'safety:safety_search' %}">Safety</a>
-            <a href="{% url 'translate:translator' %}">Translator</a>
-            <a href="{% url 'currency:converter' %}">Currency</a>
-            {% if user.is_authenticated %}
-                <a href="{% url 'favorites:view_favorites' %}">Favorites</a>
-            {% endif %}
-        </div>
-    </div>
     <div class="search-box">
         <h2>Search Any Destination for an In-depth Safety Rating</h2>
         <form method="GET" action="{% url 'safety:safety_results' %}">

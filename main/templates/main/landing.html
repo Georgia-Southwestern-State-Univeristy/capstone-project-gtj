@@ -23,7 +23,7 @@
         <p><i class="fas fa-check-circle me-2"></i> Currency and language conversion</p>
       </div>
       <div class="d-flex gap-3 mt-4">
-        <a href="#" class="btn btn-get-started">Get Started</a>
+        <a href="{% url 'main:home' %}" class="btn btn-get-started"> Enter </a>
         <a href="#" class="btn btn-outline-primary">Learn More</a>
       </div>
     </div>
@@ -35,30 +35,32 @@
           <h2 class="text-center mb-4">Welcome</h2>
           <p class="text-center mb-4 text-muted">Sign in to access your travel safety dashboard</p>
 
-          <form>
+          <form method="post" action="{% url 'accounts:login' %}">
+            {% csrf_token %}
+          
             <div class="form-floating mb-4">
-              <input type="email" id="form2Example1" class="form-control" placeholder="name@example.com" />
-              <label for="form2Example1">Email address</label>
+              <input type="text" id="id_username"  name="username" class="form-control" placeholder="username" required />
+              <label for="id_username">Username</label>
             </div>
 
             <div class="form-floating mb-4">
-              <input type="password" id="form2Example2" class="form-control" placeholder="Password" />
-              <label for="form2Example2">Password</label>
+              <input type="password" id="id_password" name="password" class="form-control" placeholder="Password" required />
+              <label for="id_password">Password</label>
             </div>
 
             <div class="d-flex justify-content-between mb-4">
               <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="" id="form2Example31" checked />
-                <label class="form-check-label" for="form2Example31"> Remember me </label>
+                <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me" />
+                <label class="form-check-label" for="remember_me"> Remember me </label>
               </div>
-              <a href="#!" class="text-primary">Forgot password?</a>
+              <a href="{% url 'accounts:password_reset' %}" class="text-primary">Forgot password?</a>
             </div>
 
-            <button type="button" class="btn btn-primary btn-lg w-100 mb-4">
+            <button type="submit" class="btn btn-primary btn-lg w-100 mb-4">
               <i class="fas fa-sign-in-alt me-2"></i> Sign in
             </button>
             <div class="text-center mt-4">
-              <p class="text-muted">Not a member? <a href="#!" class="text-primary fw-bold">Register now</a></p>
+              <p class="text-muted">Not a member? <a href="{% url 'accounts:signup' %}" class="text-primary fw-bold">Register now</a></p>
             </div>
           </form>
         </div>

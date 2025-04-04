@@ -99,19 +99,7 @@ nav a:hover {
     }
 </style>
 
-<div class="header">
-    <div>GTJGo Logo</div>
-    <div class="nav">
-        <a href="{% url 'main:home' %}">Home</a>
-        <a href="{% url 'transport:home' %}">Transportation</a>
-        <a href="{% url 'safety:safety_search' %}">Safety</a>
-        <a href="{% url 'translate:translator' %}">Translator</a>
-        <a href="{% url 'currency:converter' %}">Currency</a>
-        {% if user.is_authenticated %}
-            <a href="{% url 'favorites:view_favorites' %}">Favorites</a>
-        {% endif %}
-    </div>
-</div>
+
 
 <div class="favorites-container">
     <h1 class="page-title">Favorites</h1>

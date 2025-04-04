@@ -1,0 +1,73 @@
+
+
+   svg path {
+        margin: 0;
+        padding: 0;
+        cursor: pointer;
+        fill: #ececec;
+        stroke: black;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        transition: fill 0.2s ease-in-out;
+    }
+
+    #name {
+        position: absolute;
+        background-color: rgb(255, 255, 255);
+        width: fit-content;
+        opacity: 0;
+        border-radius: 5px;
+        border: 3px solid rgb(245, 128, 128);
+        padding: 0px 5px;
+        font-size: 1.5rem;
+        pointer-events: none;
+
+    }
+
+
+    #timeCont{
+        background-color: white;
+        width: fit-content;
+        font-size: 1.5rem;
+        padding: 5px 5px;
+        border-radius: 5px;
+        border: 3px solid rgb(114, 237, 255);        
+    }
+    svg path {
+        cursor: pointer;
+    }
+
+    
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: rgb(114, 237, 255);
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: rgb(0,181, 172);
+}
+
+header .username {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+header .username img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+
+
+
+
+
