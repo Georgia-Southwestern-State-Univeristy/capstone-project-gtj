@@ -54,13 +54,13 @@
                 <img src="{% static 'safety/images/prevention.png' %}" alt="prevention" onerror="this.src='https://via.placeholder.com/30x30?text=🛡️'">
             </div>
             <div class="stat-item">
-                <div class="score">{{ country.user_rating|floatformat:1 }}%</div>
-                <div class="count">({{ country.user_rating_count }})</div>
+                <div class="score">{{ country.user_safety_score|floatformat:1 }}%</div>
+                <div class="count">({{ country.rating_count }})</div>
                 <div class="label">User Rating</div>
                 <img src="{% static 'safety/images/prevention.png' %}" alt="prevention" onerror="this.src='https://via.placeholder.com/30x30?text=🛡️'">
             </div>
         </div>
-        {% if user.is_authenticated %
+        {% if user.is_authenticated %}
             <div class="user-rating-form">
                 <h3>Rate this Country</h3>
                 <div class="star-rating">
@@ -70,11 +70,9 @@
                     <span class="star" data-value="4">&#9733;</span>
                     <span class="star" data-value="5">&#9733;</span>
                 </div>
-                <form id="rating-form" method="POST" action="{% url 'safety:submit_rating' country.id %}">
+                <form id="rating-form" method="POST" action="{% url 'safety:rate_country' country.id %}">
                     {% csrf_token %}
                     <input type="hidden" name="rating" id="rating-input">
-                    <input type="hidden" name="country_id" value="{{ country.id }}">
-                    <input type="hidden" name="user_id" value="{{ user.id }}">
                     <textarea name="comment" id="comment" placeholder="Leave a comment (optional)" rows="4"></textarea>
                     <button type="submit" class="submit-rating">Submit Rating</button>
                 </form>
@@ -82,7 +80,7 @@
             </div>
         {% else %}
             <div class="login-prompt">
-                <p>Please <a href="{% url 'login' %}">log in</a> to rate this country.</p>
+                <p>Please <a href="{% url 'accounts:login' %}">log in</a> to rate this country.</p>
             </div>
         {% endif %}
         <div class="content">
@@ -139,17 +137,32 @@
             <div class="user-rating">
                 <h3>User Ratings and Comments</h3>
                 {% if country.user_ratings %}
-                    <ul>
+                    <ul class="rating-list">
                         {% for rating in country.user_ratings %}
-                            <li>
-                                <strong>{{ rating.user.username }}:</strong> {{ rating.rating }} stars
-                                <p>{{ rating.comment }}</p>
+                            <li class="rating-item">
+                                <div class="rating-header">
+                                    <span class="reviewer">{{ rating.user.username }}</span>
+                                    <span class="rating-stars">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= rating.rating %}
+                                                <span class="star star-filled">★</span>
+                                            {% else %}
+                                                <span class="star star-empty">★</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </span>
+                                    <span class="review-date">{{ rating.created_at|date:"F j, Y" }}</span>
+                                </div>
+                                {% if rating.comment %}
+                                    <p class="rating-comment">{{ rating.comment }}</p>
+                                {% endif %}
                             </li>
                         {% endfor %}
                     </ul>
                 {% else %}
-                    <p>No ratings yet. Be the first to rate!</p>
+                    <p class="no-reviews">No ratings yet. Be the first to rate!</p>
                 {% endif %}
+            </div>
         </div>
     {% else %}
         <div class="error-box">
@@ -158,8 +171,8 @@
         </div>
     {% endif %}
     {% if not country.id %}
-        <div class = "ai-disclaimer">
-            <p> The following information is a mixture of AI generated information and Human created information.</p>
+        <div class="ai-disclaimer">
+            <p>The following information is a mixture of AI generated information and Human created information.</p>
         </div>
     {% endif %}
 </div>
@@ -305,7 +318,7 @@
         padding-left: 15px;
     }
     .section-content {
-    line-height: 1.6;
+        line-height: 1.6;
     }
     
     .emergency-numbers {
@@ -344,14 +357,24 @@
             margin-bottom: 10px;
         }
     }
+    .star-rating {
+        display: flex;
+        cursor: pointer;
+        margin-bottom: 10px;
+    }
+    .star {
+        font-size: 30px;
+        color: #ccc;
+        margin-right: 5px;
+    }
+    .star.selected, .rating-stars .star-filled {
+        color: #f39c12;
+    }
     .star-empty {
         color: #ccc;
     }
-    .star-filled {
-        color: #f39c12;
-    }
-    .user-reviews{
-        margin-top: 20px;
+    .user-rating {
+        margin-top: 30px;
     }
     .user-rating-form {
         background-color: white;
@@ -359,27 +382,15 @@
         border-radius: 10px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         margin-top: 20px;
+        margin-bottom: 20px;
     }
-    .star-rating {
-        display: flex;
-        cursor: pointer;
-        margin-bottom: 10px;
-    }
-    .star{
-        font-size: 30px;
-        color: #ccc;
-        margin-right: 5px;
-    }
-    .star:hover, .star:hover ~ .star {
-        color: #f39c12;
-    }
-    .rating-comment {
+    #comment {
         width: 100%;
         padding: 10px;
         border: 1px solid #ccc;
         border-radius: 5px;
-        margin-bottom:15px;
-        min-height:100px;
+        margin-bottom: 15px;
+        box-sizing: border-box;
     }
     .submit-rating {
         background-color: #e38b8b;
@@ -388,14 +399,17 @@
         border: none;
         border-radius: 5px;
         cursor: pointer;
+        font-weight: bold;
+    }
+    .rating-message {
+        margin-top: 10px;
+        font-weight: bold;
     }
     .rating-message.success {
         color: green;
-        margin-top: 10px;
     }
     .rating-message.error {
         color: red;
-        margin-top: 10px;
     }
     .login-prompt {
         background-color: white;
@@ -403,30 +417,59 @@
         border-radius: 10px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         margin-top: 20px;
+        margin-bottom: 20px;
         text-align: center;
     }
-    .review-header {
-        font-size: 1.5em;
+    .rating-list {
+        list-style-type: none;
+        padding: 0;
+    }
+    .rating-item {
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    .rating-header {
+        display: flex;
+        align-items: center;
         margin-bottom: 10px;
     }
-    .reviewer{
+    .reviewer {
         font-weight: bold;
-        margin-bottom: 5px;
+        margin-right: 10px;
     }
-    .review-date{
+    .rating-stars {
+        margin-right: 10px;
+    }
+    .review-date {
         font-size: 0.9em;
         color: #999;
+        margin-left: auto;
     }
-    .no-reviews{
+    .rating-comment {
+        margin: 0;
+    }
+    .no-reviews {
         font-style: italic;
         color: #999;
     }
+    .ai-disclaimer {
+        background-color: #f8f8f8;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 20px;
+        text-align: center;
+        font-style: italic;
+        color: #666;
+    }
 </style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Star rating functionality
-    const stars = document.querySelectorAll('.star');
-    const ratingInput = document.getElementById('ratingValue');
+    const stars = document.querySelectorAll('.star-rating .star');
+    const ratingInput = document.getElementById('rating-input');
     
     stars.forEach(star => {
         star.addEventListener('click', function() {
@@ -445,8 +488,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Form submission
-    const ratingForm = document.getElementById('ratingForm');
-    const ratingMessage = document.getElementById('ratingMessage');
+    const ratingForm = document.getElementById('rating-form');
+    const ratingMessage = document.getElementById('rating-message');
     
     if (ratingForm) {
         ratingForm.addEventListener('submit', function(e) {
@@ -460,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const formData = new FormData(ratingForm);
             
-            fetch('{% url "safety:submit_safety_rating" %}', {
+            fetch(ratingForm.action, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -473,18 +516,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     ratingMessage.textContent = data.message;
                     ratingMessage.className = 'rating-message success';
                     
-                    // Update displayed average rating
-                    document.querySelector('.user-rating .rating-score').textContent = 
-                        parseFloat(data.avg_rating).toFixed(1);
-                    document.querySelector('.user-rating .rating-count').textContent = 
-                        `(${data.count} ratings)`;
+                    // Update displayed average rating if elements exist
+                    const ratingScore = document.querySelector('.stats .score');
+                    const ratingCount = document.querySelector('.stats .count');
                     
-                    // Optional: Reload the page to show the new review
+                    if (ratingScore && data.avg_rating) {
+                        ratingScore.textContent = parseFloat(data.avg_rating).toFixed(1) + '%';
+                    }
+                    
+                    if (ratingCount && data.count) {
+                        ratingCount.textContent = `(${data.count})`;
+                    }
+                    
+                    // Reload the page after 2 seconds to show the new review
                     setTimeout(() => {
                         location.reload();
                     }, 2000);
                 } else {
-                    ratingMessage.textContent = data.message;
+                    ratingMessage.textContent = data.message || 'An error occurred';
                     ratingMessage.className = 'rating-message error';
                 }
             })
