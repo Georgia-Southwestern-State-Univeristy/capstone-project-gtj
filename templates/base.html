@@ -162,7 +162,7 @@
             <!-- Comment out until URL issue is fixed -->
             <!-- <a href="#" class="nav-item">Itinerary</a> -->
             {% if user.is_authenticated %}
-              <a href="{% url 'favorites:view_favorites' %}" class="nav-item">Favorites</a>
+              <a href="{% url 'favorites:favorites_list' %}" class="nav-item">Favorites</a>
             {% endif %}
           </div>
           <div class="auth-links">

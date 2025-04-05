@@ -46,7 +46,7 @@
                 <img src="{% static 'safety/images/prevention.png' %}" alt="prevention" onerror="this.src='https://via.placeholder.com/30x30?text=🛡️'">
             </div>
         </div>
-        {% if user.is_authenticated %}
+        {% if user.is_authenticated and country.id %}
             <div class="user-rating-form">
                 <h3>Rate this Country</h3>
                 <div class="star-rating">
@@ -64,6 +64,10 @@
                 </form>
                 <div class="rating-message" id="rating-message"></div>  
             </div>
+            {% elif user.is_authenticated %}
+    <div class="login-prompt">
+        <p>This country cannot be rated at this time.</p>
+    </div>
         {% else %}
             <div class="login-prompt">
                 <p>Please <a href="{% url 'accounts:login' %}">log in</a> to rate this country.</p>

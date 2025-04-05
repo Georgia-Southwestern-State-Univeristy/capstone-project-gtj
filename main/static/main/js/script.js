@@ -23,11 +23,14 @@ document.addEventListener("DOMContentLoaded", function () {
             e.style.fill = "#ececec";
 
             // Hide tooltip
-            document.getElementById("name").style.opacity = 0;
+            const nameTag = document.getElementById("name");
+            if (nameTag) {
+                nameTag.style.opacity = 0;
+            }
         });
 
         e.addEventListener("click", function () {
-            alert(`Clicked on: ${e.id}`); // Replace with your function
+            window.location.href = `/safety/results/?country=${encodeURIComponent(e.id)}`;
         });
     });
 

@@ -23,6 +23,10 @@
         pointer-events: none;
 
     }
+    #namep{
+        margin: 5px;
+        font-weight: bold;
+    }
 
 
     #timeCont{
@@ -65,7 +69,25 @@ header .username img {
     height: 40px;
     border-radius: 50%;
 }
+.main-content {
+    position: relative;
+    width: 100%;
+    max-width: 2000px;
+    margin: 0 auto;
+    overflow: hidden;
+}
 
+/* Styling for hover states */
+svg path:hover {
+    fill: pink;
+    stroke-width: 1.5;
+    stroke: rgb(200, 0, 0);
+}
+
+/* Styling for click states */
+svg path:active {
+    fill: rgb(255, 150, 150);
+}
 
 
 

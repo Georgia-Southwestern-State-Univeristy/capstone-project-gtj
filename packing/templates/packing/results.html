@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block content %}
+{% csrf_token %}
 <div class="packer-container">
     <div class="trip-header">
         <div class="trip-info">
@@ -12,6 +13,12 @@
             <button onclick="window.print()" class="print-button">
                 <i class="fas fa-print"></i> Print
             </button>
+            {% if user.is_authenticated %}
+                <button id="favorite-btn" onclick="saveToFavorites({{packing_list.id}})" class="favorite-button {% if is_favorited %}favorited{% endif %}">
+                    <i  id="favorite-icon" class="{%if is_favorited %}fas{% else %}far{%endif%
+                    {% if is_favorited%} Save to Favorites  {% else %} Save to Favorites {% endif %}
+                </button>
+            {% endif %}
             <a href="{% url 'packing:home' %}" class="new-button">
                 <i class="fas fa-plus"></i> New Trip
             </a>
@@ -323,6 +330,23 @@
         text-decoration: none;
         display: inline-block;
     }
+    .favorite-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.favorite-button.favorited {
+    background-color: #d4edda;
+    color: #155724;
+}
 </style>
 
 <!-- Add Font Awesome for icons -->
@@ -348,5 +372,40 @@
         // Add "active" class to the button that opened the tab
         evt.currentTarget.classList.add("active");
     }
+    
+    function saveToFavorites(packingListId) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const favoriteBtn = document.getElementById('favorite-btn');
+    const favoriteIcon = document.getElementById('favorite-icon');
+    
+    fetch('{% url "favorites:add_favorite" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({
+            'type': 'packing_list',
+            'packing_list_id': packingListId  // Changed from 'object_id' to 'packing_list_id'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'added') {
+            favoriteBtn.classList.add('favorited');
+            favoriteIcon.classList.remove('far');
+            favoriteIcon.classList.add('fas');
+            favoriteBtn.innerHTML = '<i class="fas fa-heart" id="favorite-icon"></i> Saved to Favorites';
+        } else if (data.status === 'removed') {
+            favoriteBtn.classList.remove('favorited');
+            favoriteIcon.classList.remove('fas');
+            favoriteIcon.classList.add('far');
+            favoriteBtn.innerHTML = '<i class="far fa-heart" id="favorite-icon"></i> Save to Favorites';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
 </script>
 {% endblock %}

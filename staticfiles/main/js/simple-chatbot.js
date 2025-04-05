@@ -11,10 +11,10 @@ document.addEventListener('DOMContentLoaded', function() {
         text: "Hi there! I'm your GTJGo travel assistant. How can I help you today?",
         sender: 'bot',
         options: [
-          "Transportation options",
+          "Transportation",
           "Safety information",
-          "Destination ideas",
-          "Travel planning"
+          "Itinerary Generator",
+          
         ]
       }
     ];
@@ -107,13 +107,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Response handler
     function getResponse(selection) {
       switch(selection) {
-        case "Transportation options":
+        case "Transportation":
           return {
             text: "What kind of transportation information are you looking for?",
             options: [
               "Public transit in a city",
-              "Airport transfers",
-              "Car rentals"
+              "back to main menu",
+
             ]
           };
           
@@ -121,89 +121,58 @@ document.addEventListener('DOMContentLoaded', function() {
           return {
             text: "Our Transport section can help you find subway stations, bus stops, and train stations in your destination city. Which city are you visiting?",
             options: [
-              "Paris",
-              "London",
-              "Tokyo",
-              "New York",
-              "Ask about another city"
+              "Back to main menu",
             ]
           };
           
-        case "Airport transfers":
-          return {
-            text: "In the Rentals section, you can book transportation from airports to your hotel. Just enter your airport, date, and hotel to see available options.",
-            options: [
-              "How does it work?",
-              "View popular airports",
-              "Back to main menu"
-            ]
-          };
-          
-        case "Car rentals":
-          return {
-            text: "While we don't offer direct car rental bookings, our Rentals section focuses on airport transfers and local transportation options.",
-            options: [
-              "Airport transfers",
-              "Public transit options",
-              "Back to main menu"
-            ]
-          };
+        
           
         case "Safety information":
           return {
             text: "What kind of safety information are you looking for?",
             options: [
               "General safety ratings",
-              "Women/Solo traveler safety",
-              "Common scams and crimes",
-              "Emergency contacts"
-            ]
-          };
-          
-        case "Destination ideas":
-          return {
-            text: "What kind of destination are you interested in?",
-            options: [
-              "Beach destinations",
-              "City breaks",
-              "Adventure travel",
-              "Family-friendly places",
-              "Cultural experiences"
-            ]
-          };
-          
-        case "Travel planning":
-          return {
-            text: "How can I help with your travel planning?",
-            options: [
-              "Best time to visit destinations",
-              "Saving favorite places",
-              "Packing tips",
-              "Travel preparation checklist"
-            ]
-          };
-          
-        case "Paris":
-        case "London":
-        case "Tokyo":
-        case "New York":
-          return {
-            text: `You can find detailed transportation information for ${selection} in our Transport section. There you'll see subway/metro stations, bus stops, and train connections.`,
-            options: [
-              "Safety information",
-              "Other cities",
               "Back to main menu"
             ]
           };
+          case "General safety ratings":
+          return {
+            text: "Our Safety section provides safety ratings for various countries. Ratings are based on crime rates, health risks, and other factors.",
+            options: [
+              "Back to main menu",
+            ]
+          };
           
+        case "Itinerary Generator":
+          return {
+            text: "What questions do you have about itinerary generation?",
+            options: [
+              "How is the itinerary generated?",
+              "Saving favorite lists",
+              "Packing tips",
+              "Travel preparation checklist",
+              "Back to main menu"
+            ]
+          };
+        case "How is the itinerary generated?":
+          return {
+            text: "The itinerary is generated based on location,weather and interests. You can customize it by entering destinations and travel dates.",
+            options: [
+              "Saving favorite lists",
+              "Packing tips",
+              "Travel preparation checklist",
+              "Back to main menu"
+            ]
+          };
+        
         case "Back to main menu":
           return {
             text: "What else would you like to know about?",
             options: [
               "Transportation options",
               "Safety information",
-              "Destination ideas",
-              "Travel planning"
+              "Itinerary Generator",
+    
             ]
           };
           
@@ -211,10 +180,11 @@ document.addEventListener('DOMContentLoaded', function() {
           return {
             text: "I'm here to help with your travel plans! What would you like to know about?",
             options: [
-              "Transportation options",
+              "Transportation",
               "Safety information",
-              "Destination ideas",
-              "Travel planning"
+              "Itinerary Generator",
+              "Back to main menu"
+      
             ]
           };
       }
