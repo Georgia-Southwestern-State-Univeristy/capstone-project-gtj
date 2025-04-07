@@ -14,10 +14,10 @@
                 <i class="fas fa-print"></i> Print
             </button>
             {% if user.is_authenticated %}
-                <button id="favorite-btn" onclick="saveToFavorites({{packing_list.id}})" class="favorite-button {% if is_favorited %}favorited{% endif %}">
-                    <i  id="favorite-icon" class="{%if is_favorited %}fas{% else %}far{%endif%
-                    {% if is_favorited%} Save to Favorites  {% else %} Save to Favorites {% endif %}
-                </button>
+            <button id="favorite-btn" onclick="saveToFavorites({{packing_list.id}})" class="favorite-button {% if is_favorited %}favorited{% endif %}">
+                <i id="favorite-icon" class="{% if is_favorited %}fas{% else %}far{% endif %} fa-heart"></i>
+                {% if is_favorited %}Saved to Favorites{% else %}Save to Favorites{% endif %}
+            </button>
             {% endif %}
             <a href="{% url 'packing:home' %}" class="new-button">
                 <i class="fas fa-plus"></i> New Trip
@@ -386,7 +386,7 @@
         },
         body: JSON.stringify({
             'type': 'packing_list',
-            'packing_list_id': packingListId  // Changed from 'object_id' to 'packing_list_id'
+            'packing_list_id': packingListId
         })
     })
     .then(response => response.json())
@@ -406,6 +406,7 @@
     .catch(error => {
         console.error('Error:', error);
     });
-}
+}   
+
 </script>
 {% endblock %}
