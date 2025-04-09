@@ -372,11 +372,12 @@
         // Add "active" class to the button that opened the tab
         evt.currentTarget.classList.add("active");
     }
-    
     function saveToFavorites(packingListId) {
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     const favoriteBtn = document.getElementById('favorite-btn');
     const favoriteIcon = document.getElementById('favorite-icon');
+    
+    console.log('Attempting to save to favorites: ' + packingListId); // For debugging
     
     fetch('{% url "favorites:add_favorite" %}', {
         method: 'POST',
@@ -389,8 +390,13 @@
             'packing_list_id': packingListId
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status); // For debugging
+        return response.json();
+    })
     .then(data => {
+        console.log('Response data:', data); // For debugging
+        
         if (data.status === 'added') {
             favoriteBtn.classList.add('favorited');
             favoriteIcon.classList.remove('far');
@@ -406,7 +412,6 @@
     .catch(error => {
         console.error('Error:', error);
     });
-}   
-
+}
 </script>
 {% endblock %}
