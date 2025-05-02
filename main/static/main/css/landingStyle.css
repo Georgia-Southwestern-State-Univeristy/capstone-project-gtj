@@ -201,3 +201,17 @@ body {
         font-size: 2rem;
     }
 }
+@media (max-width: 767px) {
+    .login-container {
+      flex-direction: column;
+    }
+    
+    .brand-section {
+      padding: 30px 15px;
+      text-align: center;
+    }
+    
+    .card {
+      margin-top: 20px;
+    }
+  }
