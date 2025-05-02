@@ -14,7 +14,7 @@
                 <i class="fas fa-print"></i> Print
             </button>
             {% if user.is_authenticated %}
-            <button id="favorite-btn" onclick="saveToFavorites({{packing_list.id}})" class="favorite-button {% if is_favorited %}favorited{% endif %}">
+            <button id="favorite-btn" onclick="saveToFavorites('{{ packing_list.id }}')" class="favorite-button {% if is_favorited %}favorited{% endif %}">
                 <i id="favorite-icon" class="{% if is_favorited %}fas{% else %}far{% endif %} fa-heart"></i>
                 {% if is_favorited %}Saved to Favorites{% else %}Save to Favorites{% endif %}
             </button>
@@ -53,10 +53,11 @@
                     </div>
                 {% endfor %}
             {% else %}
-                <div class="no-items">
-                    <p>No packing items found. Something went wrong with the generation.</p>
-                    <a href="{% url 'packing:home' %}" class="button">Try Again</a>
-                </div>
+            <div class="no-items">
+                <p>No packing items found. Something went wrong with the generation.</p>
+                <a href="{% url 'packing:retry_generation' packing_list.id %}" class="button">Try Again</a>
+            </div>
+            
             {% endif %}
         </div>
 
@@ -91,10 +92,10 @@
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="no-items">
-                    <p>No itinerary found. Something went wrong with the generation.</p>
-                    <a href="{% url 'packing:home' %}" class="button">Try Again</a>
-                </div>
+            <div class="no-items">
+                <p>No itinerary found. Something went wrong with the generation.</p>
+                <a href="{% url 'packing:retry_generation' packing_list.id %}" class="button">Try Again</a>
+            </div>
             {% endif %}
         </div>
     </div>
@@ -414,4 +415,34 @@
     });
 }
 </script>
+{% if request.user.is_staff %}
+<div class="debug-info" style="margin-top: 50px; padding: 20px; background-color: #f0f0f0; border: 1px solid #ccc; border-radius: 5px;">
+    <h3>Debug Information (Staff Only)</h3>
+    <p><strong>Packing List ID:</strong> {{ packing_list.id }}</p>
+    <p><strong>Items Count:</strong> {{ items_count }}</p>
+    <p><strong>Itinerary Count:</strong> {{ itinerary_count }}</p>
+    <p><strong>Categories:</strong> {{ categories|join:", " }}</p>
+    
+    <h4>Raw Items Data</h4>
+    <ul>
+    {% for category, items_list in grouped_items.items %}
+        <li>
+            <strong>{{ category }}:</strong>
+            <ul>
+            {% for item in items_list %}
+                <li>{{ item.name }} (x{{ item.quantity }})</li>
+            {% endfor %}
+            </ul>
+        </li>
+    {% empty %}
+        <li>No items found in grouped_items</li>
+    {% endfor %}
+    </ul>
+    
+    <form method="POST" action="{% url 'packing:retry_generation' packing_list.id %}">
+        {% csrf_token %}
+        <button type="submit" class="button">Force Regenerate</button>
+    </form>
+</div>
+{% endif %}
 {% endblock %}

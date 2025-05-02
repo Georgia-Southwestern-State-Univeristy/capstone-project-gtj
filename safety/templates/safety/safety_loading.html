@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="loading-container">
+        <h2>Loading Safety Information for {{ country_query }}</h2>
+        <div class="loading-animation">
+            <div class="spinner"></div>
+        </div>
+        <p class="loading-message">We're generating comprehensive safety information. This might take 10-20 seconds...</p>
+        <div id="progress-bar-container">
+            <div id="progress-bar"></div>
+        </div>
+        <div id="status-message"></div>
+        <button id="retry-button" class="retry-button" style="display: none;">Try Again</button>
+        <a href="{% url 'safety:safety_search' %}" class="back-btn" style="display: none;">Back to Search</a>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: rgb(249, 181, 172);
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        color: #333;
+        line-height: 1.6;
+    }
+    
+    .container {
+        max-width: 1000px;
+        margin: 20px auto;
+        padding: 20px;
+        border-radius: 10px;
+    }
+    
+    .loading-container {
+        background-color: white;
+        padding: 40px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .loading-animation {
+        margin: 30px auto;
+    }
+    
+    .spinner {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto;
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #e38b8b;
+        border-radius: 50%;
+        animation: spin 1.5s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .loading-message {
+        font-size: 1.1em;
+        margin-bottom: 20px;
+    }
+    
+    #progress-bar-container {
+        width: 100%;
+        background-color: #f3f3f3;
+        border-radius: 5px;
+        margin: 20px 0;
+        overflow: hidden;
+    }
+    
+    #progress-bar {
+        width: 0%;
+        height: 20px;
+        background-color: #e38b8b;
+        border-radius: 5px;
+        transition: width 0.5s;
+    }
+    
+    #status-message {
+        font-weight: bold;
+        margin-top: 20px;
+    }
+    
+    .error-message {
+        color: #d9534f;
+    }
+    
+    .retry-button, .back-btn {
+        background-color: #e38b8b;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        margin-top: 20px;
+        display: inline-block;
+        text-decoration: none;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statusMessage = document.getElementById('status-message');
+    const progressBar = document.getElementById('progress-bar');
+    const retryButton = document.getElementById('retry-button');
+    const backButton = document.querySelector('.back-btn');
+    const loadingAnimation = document.querySelector('.spinner');
+    
+    let checkCount = 0;
+    const maxChecks = 40; // Maximum attempts (about 40 seconds)
+    
+    // Increment the progress bar for visual feedback
+    function updateProgress(count) {
+        const percentage = Math.min((count / maxChecks) * 100, 95); // Max at 95% until complete
+        progressBar.style.width = percentage + '%';
+    }
+    
+    function checkStatus() {
+        if (checkCount >= maxChecks) {
+            // Max attempts reached - show error
+            loadingAnimation.style.display = 'none';
+            statusMessage.textContent = 'We couldn\'t retrieve the safety information in time. Please try again.';
+            statusMessage.className = 'error-message';
+            retryButton.style.display = 'inline-block';
+            backButton.style.display = 'inline-block';
+            return;
+        }
+        
+        // Update visual progress
+        checkCount++;
+        updateProgress(checkCount);
+        
+        fetch(`/safety/check-status/?country={{ country_query|urlencode }}`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'ready') {
+                // Data is ready, show 100% progress and redirect
+                progressBar.style.width = '100%';
+                statusMessage.textContent = 'Information ready! Redirecting...';
+                setTimeout(function() {
+                    window.location.href = data.redirect_url;
+                }, 1000);
+            } else if (data.status === 'pending') {
+                // Still processing, check again after a delay
+                statusMessage.textContent = 'Generating safety information...';
+                setTimeout(checkStatus, 1000);
+            } else if (data.status === 'failed') {
+                // Error status returned from backend
+                loadingAnimation.style.display = 'none';
+                statusMessage.textContent = data.message || 'Failed to generate safety information.';
+                statusMessage.className = 'error-message';
+                retryButton.style.display = 'inline-block';
+                backButton.style.display = 'inline-block';
+            } else {
+                // Unknown error
+                loadingAnimation.style.display = 'none';
+                statusMessage.textContent = 'An unexpected error occurred.';
+                statusMessage.className = 'error-message';
+                retryButton.style.display = 'inline-block';
+                backButton.style.display = 'inline-block';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            statusMessage.textContent = 'Connection error. Please try again.';
+            statusMessage.className = 'error-message';
+            loadingAnimation.style.display = 'none';
+            retryButton.style.display = 'inline-block';
+            backButton.style.display = 'inline-block';
+        });
+    }
+    
+    // Retry button handler
+    retryButton.addEventListener('click', function() {
+        // Reset UI
+        loadingAnimation.style.display = 'block';
+        statusMessage.textContent = '';
+        statusMessage.className = '';
+        retryButton.style.display = 'none';
+        backButton.style.display = 'none';
+        checkCount = 0;
+        progressBar.style.width = '0%';
+        
+        // Force a new request by clearing cache
+        fetch(`/safety/clear-pending/?country={{ country_query|urlencode }}`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(() => {
+            // Reload the page to start a fresh request
+            window.location.reload();
+        })
+        .catch(() => {
+            // If the clear-pending endpoint fails, just reload anyway
+            window.location.reload();
+        });
+    });
+    
+    // Start checking status after a short delay
+    setTimeout(checkStatus, 1500);
+});
+</script>
+{% endblock %}

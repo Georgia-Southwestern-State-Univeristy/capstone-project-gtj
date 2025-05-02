@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="packer-container">
+    <div class="form-container">
+        <h1>Generate Your Weather-Based Packing List & Itinerary</h1>
+        <p>Tell us where and when you're traveling, and we'll create a personalized packing list and suggested itinerary based on weather forecasts!</p>
+        
+        <form method="POST" class="packing-form">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="error-message">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="{{ form.destination.id_for_label }}">Destination (City, Country)</label>
+                {{ form.destination }}
+                {% if form.destination.errors %}
+                    <div class="error-message">{{ form.destination.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.start_date.id_for_label }}">Start Date</label>
+                {{ form.start_date }}
+                {% if form.start_date.errors %}
+                    <div class="error-message">{{ form.start_date.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.end_date.id_for_label }}">End Date</label>
+                {{ form.end_date }}
+                {% if form.end_date.errors %}
+                    <div class="error-message">{{ form.end_date.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <button type="submit" class="submit-button">Generate Packing List & Itinerary</button>
+        </form>
+    </div>
+    
+    <div class="features-container">
+        <h2>Our Packing Assistant Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fas fa-cloud-sun feature-icon"></i>
+                <h3>Weather-Based Recommendations</h3>
+                <p>Get packing suggestions tailored to the weather forecast for your specific travel dates.</p>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-suitcase feature-icon"></i>
+                <h3>Comprehensive Packing List</h3>
+                <p>Never forget essential items with our AI-generated packing lists organized by category.</p>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-map-marked-alt feature-icon"></i>
+                <h3>Custom Itinerary Suggestions</h3>
+                <p>Receive daily activity recommendations based on local attractions and weather conditions.</p>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-print feature-icon"></i>
+                <h3>Print-Ready Format</h3>
+                <p>Easily print your packing list and itinerary to take with you on your trip.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .packer-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .header {
+        background-color: rgb(249, 181, 172);
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+
+    .nav a {
+        margin: 0 15px;
+        text-decoration: none;
+        color: black;
+        font-weight: bold;
+    }
+
+    .form-container {
+        background-color: rgb(249, 181, 172);
+        padding: 30px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+
+    .form-container h1 {
+        color: #333;
+        margin-top: 0;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .form-container p {
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .packing-form {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+
+    .submit-button {
+        background-color: #333;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    .error-message {
+        color: #c00;
+        background-color: #fee;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+
+    .features-container {
+        padding: 30px;
+        background-color: white;
+        border-radius: 10px;
+    }
+
+    .features-container h2 {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #333;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .feature-card {
+        padding: 20px;
+        background-color: #f8f8f8;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        color: rgb(249, 181, 172);
+        margin-bottom: 15px;
+    }
+
+    .feature-card h3 {
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .feature-card p {
+        color: #666;
+    }
+
+    @media (max-width: 768px) {
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

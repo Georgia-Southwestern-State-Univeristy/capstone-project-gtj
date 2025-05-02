@@ -1,0 +1,417 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% csrf_token %}
+<div class="packer-container">
+    <div class="trip-header">
+        <div class="trip-info">
+            <h1>{{ packing_list.destination }}</h1>
+            <h3>{{ packing_list.start_date|date:"F j, Y" }} - {{ packing_list.end_date|date:"F j, Y" }}</h3>
+        </div>
+        <div class="trip-actions">
+            <button onclick="window.print()" class="print-button">
+                <i class="fas fa-print"></i> Print
+            </button>
+            {% if user.is_authenticated %}
+            <button id="favorite-btn" onclick="saveToFavorites({{packing_list.id}})" class="favorite-button {% if is_favorited %}favorited{% endif %}">
+                <i id="favorite-icon" class="{% if is_favorited %}fas{% else %}far{% endif %} fa-heart"></i>
+                {% if is_favorited %}Saved to Favorites{% else %}Save to Favorites{% endif %}
+            </button>
+            {% endif %}
+            <a href="{% url 'packing:home' %}" class="new-button">
+                <i class="fas fa-plus"></i> New Trip
+            </a>
+        </div>
+    </div>
+
+    <div class="content-container">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab(event, 'packingList')">Packing List</button>
+            <button class="tab-btn" onclick="openTab(event, 'itinerary')">Itinerary</button>
+        </div>
+
+        <!-- Packing List Tab -->
+        <div id="packingList" class="tab-content active">
+            {% if items %}
+                {% regroup items by category as category_list %}
+                
+                {% for category in category_list %}
+                    <div class="category-section">
+                        <h2>{{ category.grouper }}</h2>
+                        <div class="items-grid">
+                            {% for item in category.list %}
+                                <div class="item-card">
+                                    <div class="item-checkbox">
+                                        <input type="checkbox" id="item-{{ item.id }}">
+                                        <label for="item-{{ item.id }}">{{ item.name }}</label>
+                                    </div>
+                                    <div class="item-quantity">x{{ item.quantity }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-items">
+                    <p>No packing items found. Something went wrong with the generation.</p>
+                    <a href="{% url 'packing:home' %}" class="button">Try Again</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Itinerary Tab -->
+        <div id="itinerary" class="tab-content">
+            {% if itinerary %}
+                <div class="itinerary-container">
+                    {% for day in itinerary %}
+                        <div class="day-card">
+                            <div class="day-header">
+                                <h2>Day {{ day.day }}: {{ day.date|date:"l, F j" }}</h2>
+                                <div class="weather-badge">
+                                    <i class="
+                                        {% if 'rain' in day.weather_forecast|lower %}fas fa-cloud-rain
+                                        {% elif 'storm' in day.weather_forecast|lower %}fas fa-bolt
+                                        {% elif 'cloud' in day.weather_forecast|lower %}fas fa-cloud
+                                        {% elif 'clear' in day.weather_forecast|lower %}fas fa-sun
+                                        {% elif 'snow' in day.weather_forecast|lower %}fas fa-snowflake
+                                        {% else %}fas fa-cloud-sun
+                                        {% endif %}"></i>
+                                    {{ day.weather_forecast }}
+                                </div>
+                            </div>
+                            <div class="day-activities">
+                                {% if day.description %}
+                                    {{ day.description|linebreaks }}
+                                {% else %}
+                                    <p>No activities planned for this day.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="no-items">
+                    <p>No itinerary found. Something went wrong with the generation.</p>
+                    <a href="{% url 'packing:home' %}" class="button">Try Again</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Print styles */
+    @media print {
+        .header, .trip-actions, .tabs {
+            display: none !important;
+        }
+        .tab-content {
+            display: block !important;
+        }
+        .content-container {
+            box-shadow: none !important;
+        }
+        body {
+            background-color: white !important;
+        }
+    }
+
+    .packer-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .header {
+        background-color: rgb(249, 181, 172);
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+
+    .nav a {
+        margin: 0 15px;
+        text-decoration: none;
+        color: black;
+        font-weight: bold;
+    }
+
+    .trip-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .trip-info h1 {
+        margin: 0 0 10px 0;
+        color: #333;
+    }
+
+    .trip-info h3 {
+        margin: 0;
+        color: #666;
+        font-weight: normal;
+    }
+
+    .trip-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .print-button, .new-button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .print-button {
+        background-color: #333;
+        color: white;
+    }
+
+    .new-button {
+        background-color: rgb(249, 181, 172);
+        color: #333;
+        text-decoration: none;
+    }
+
+    .content-container {
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .tabs {
+        display: flex;
+        background-color: #f8f8f8;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .tab-btn {
+        background: none;
+        border: none;
+        padding: 15px 30px;
+        font-size: 18px;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .tab-btn.active {
+        color: rgb(249, 181, 172);
+        font-weight: bold;
+    }
+
+    .tab-btn.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background-color: rgb(249, 181, 172);
+    }
+
+    .tab-content {
+        display: none;
+        padding: 30px;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .category-section {
+        margin-bottom: 30px;
+    }
+
+    .category-section h2 {
+        color: #333;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 20px;
+    }
+
+    .items-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+    }
+
+    .item-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        background-color: #f8f8f8;
+        border-radius: 5px;
+    }
+
+    .item-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .item-checkbox input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+    }
+
+    .item-quantity {
+        color: #666;
+        font-weight: bold;
+    }
+
+    .day-card {
+        background-color: #f8f8f8;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+
+    .day-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: rgb(249, 181, 172);
+        padding: 15px 20px;
+    }
+
+    .day-header h2 {
+        margin: 0;
+        color: #333;
+        font-size: 1.3rem;
+    }
+
+    .weather-badge {
+        background-color: white;
+        padding: 8px 15px;
+        border-radius: 50px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+    }
+
+    .day-activities {
+        padding: 20px;
+    }
+
+    .day-activities p {
+        margin: 10px 0;
+    }
+
+    .no-items {
+        text-align: center;
+        padding: 50px 0;
+    }
+
+    .no-items p {
+        margin-bottom: 20px;
+        color: #666;
+    }
+
+    .button {
+        background-color: rgb(249, 181, 172);
+        color: #333;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        display: inline-block;
+    }
+    .favorite-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.favorite-button.favorited {
+    background-color: #d4edda;
+    color: #155724;
+}
+</style>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+<script>
+    function openTab(evt, tabName) {
+        // Hide all tab content
+        var tabContents = document.getElementsByClassName("tab-content");
+        for (var i = 0; i < tabContents.length; i++) {
+            tabContents[i].classList.remove("active");
+        }
+        
+        // Remove "active" class from all tab buttons
+        var tabButtons = document.getElementsByClassName("tab-btn");
+        for (var i = 0; i < tabButtons.length; i++) {
+            tabButtons[i].classList.remove("active");
+        }
+        
+        // Show the specific tab content
+        document.getElementById(tabName).classList.add("active");
+        
+        // Add "active" class to the button that opened the tab
+        evt.currentTarget.classList.add("active");
+    }
+    function saveToFavorites(packingListId) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const favoriteBtn = document.getElementById('favorite-btn');
+    const favoriteIcon = document.getElementById('favorite-icon');
+    
+    console.log('Attempting to save to favorites: ' + packingListId); // For debugging
+    
+    fetch('{% url "favorites:add_favorite" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({
+            'type': 'packing_list',
+            'packing_list_id': packingListId
+        })
+    })
+    .then(response => {
+        console.log('Response status:', response.status); // For debugging
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data); // For debugging
+        
+        if (data.status === 'added') {
+            favoriteBtn.classList.add('favorited');
+            favoriteIcon.classList.remove('far');
+            favoriteIcon.classList.add('fas');
+            favoriteBtn.innerHTML = '<i class="fas fa-heart" id="favorite-icon"></i> Saved to Favorites';
+        } else if (data.status === 'removed') {
+            favoriteBtn.classList.remove('favorited');
+            favoriteIcon.classList.remove('fas');
+            favoriteIcon.classList.add('far');
+            favoriteBtn.innerHTML = '<i class="far fa-heart" id="favorite-icon"></i> Save to Favorites';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Generating Your Packing List{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="mb-4">Creating Your Travel Plan</h1>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h2>{{ packing_list.destination }}</h2>
+                    <p>{{ packing_list.start_date|date:"F j, Y" }} to {{ packing_list.end_date|date:"F j, Y" }}</p>
+                    
+                    <div class="progress mb-3">
+                        <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" style="width: 25%"></div>
+                    </div>
+                    
+                    <p id="status-message">Getting your personalized packing list and itinerary ready...</p>
+                    
+                    <div class="my-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5>While you wait...</h5>
+                    <p>We're generating your personalized packing list and travel itinerary. This usually takes about 15-30 seconds.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Poll the server to check status
+    document.addEventListener('DOMContentLoaded', function() {
+        const packingListId = {{ packing_list.id }};
+        const progressBar = document.getElementById('progress-bar');
+        const statusMessage = document.getElementById('status-message');
+        let progress = 25;
+        
+        // Update progress bar animation
+        const updateProgress = () => {
+            if (progress < 90) {
+                progress += 5;
+                progressBar.style.width = progress + '%';
+            }
+        };
+        
+        // Start progress animation
+        const progressInterval = setInterval(updateProgress, 1000);
+        
+        // Check status with server
+        const checkStatus = () => {
+            fetch(`/packing/check_status/${packingListId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'complete') {
+                        clearInterval(progressInterval);
+                        progressBar.style.width = '100%';
+                        statusMessage.textContent = 'Your travel plan is ready!';
+                        
+                        // Redirect to results page
+                        setTimeout(() => {
+                            window.location.href = `/packing/results/${packingListId}/`;
+                        }, 500);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking status:', error);
+                });
+        };
+        
+        // Check status every 2 seconds
+        const statusInterval = setInterval(checkStatus, 2000);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,95 @@
+
+
+   svg path {
+        margin: 0;
+        padding: 0;
+        cursor: pointer;
+        fill: #ececec;
+        stroke: black;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        transition: fill 0.2s ease-in-out;
+    }
+
+    #name {
+        position: absolute;
+        background-color: rgb(255, 255, 255);
+        width: fit-content;
+        opacity: 0;
+        border-radius: 5px;
+        border: 3px solid rgb(245, 128, 128);
+        padding: 0px 5px;
+        font-size: 1.5rem;
+        pointer-events: none;
+
+    }
+    #namep{
+        margin: 5px;
+        font-weight: bold;
+    }
+
+
+    #timeCont{
+        background-color: white;
+        width: fit-content;
+        font-size: 1.5rem;
+        padding: 5px 5px;
+        border-radius: 5px;
+        border: 3px solid rgb(114, 237, 255);        
+    }
+    svg path {
+        cursor: pointer;
+    }
+
+    
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: rgb(114, 237, 255);
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: rgb(0,181, 172);
+}
+
+header .username {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+header .username img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+.main-content {
+    position: relative;
+    width: 100%;
+    max-width: 2000px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+/* Styling for hover states */
+svg path:hover {
+    fill: pink;
+    stroke-width: 1.5;
+    stroke: rgb(200, 0, 0);
+}
+
+/* Styling for click states */
+svg path:active {
+    fill: rgb(255, 150, 150);
+}
+
+
+
+
+

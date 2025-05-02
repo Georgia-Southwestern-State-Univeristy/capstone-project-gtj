@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="search-box">
+        <h2>Search Any Destination for an In-depth Safety Rating</h2>
+        <form method="GET" action="{% url 'safety:safety_results' %}">
+            <input type="text" name="country" placeholder="Enter Country" required>
+            <button type="submit">Search</button>
+        </form>
+    </div>
+    <div class="checks">
+        GTJ GO! Checks For
+    </div>
+    <div class="check-items">
+        <div class="check-item">Women and LGBTQ+ Safety
+            <img src="{% static 'safety/images/woman.png' %}" alt="Woman">
+        </div>
+        <div class="check-item">
+            <img src="{% static 'safety/images/solo-traveller.png' %}" alt="Solo">
+            Solo Traveler Safety
+        </div>
+        <div class="check-item">Crime Rates and Potential Dangers
+            <img src="{% static 'safety/images/prevention.png' %}" alt="prevention">
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: rgb(249, 181, 172);
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        background-color: rgb(249, 181, 172);
+        max-width: 1000px;
+        margin: 20px auto;
+        padding: 20px;
+        border-radius: 10px;
+    }
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        background-color: rgb(249, 181, 172);
+        padding: 10px 20px;
+        font-weight: bold;
+    }
+    .navbar a {
+        text-decoration: none;
+        color: black;
+        margin: 0 10px;
+    }
+    .search-box {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+    }
+    .search-box input, .search-box button {
+        padding: 10px;
+        margin: 5px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+    .checks {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 20px;
+        font-weight: bold;
+    }
+    .check-items {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 20px;
+    }
+    .check-item {
+        background-color: #e38b8b;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        width: 200px;
+    }
+    .check-item img {
+        width: 50px;
+        height: 50px;
+        display: block;
+        margin: 0 auto 10px;
+    }
+</style>
+{% endblock %}

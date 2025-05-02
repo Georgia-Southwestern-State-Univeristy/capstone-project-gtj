@@ -20,31 +20,31 @@
     
         <div class="stats">
             <div class="stat-item">
-                <div class="score">{{ country.overall_safety_score }}%</div>
+                <div class="score">{{ country.overall_stars}}</div>
                 <div class="label">Overall Score</div>
-                <img src="{% static 'safety/images/check.png' %}" alt="Check" onerror="this.src='https://via.placeholder.com/30x30?text=✓'">
+                <img src="{% static 'safety/images/check (1).png' %}" alt="Check" onerror="this.src='https://via.placeholder.com/30x30?text=✓'">
             </div>
             <div class="stat-item">
-                <div class="score">{{ country.women_safety_score }}%</div>
+                <div class="score">{{ country.women_safety_score }}</div>
                 <div class="label">Women Safety</div>
                 <img src="{% static 'safety/images/woman.png' %}" alt="Woman" onerror="this.src='https://via.placeholder.com/30x30?text=👩'">
             </div>
             <div class="stat-item">
-                <div class="score">{{ country.night_safety_score }}%</div>
+                <div class="score">{{ country.night_safety_score }}</div>
                 <div class="label">Night Safety</div>
                 <img src="{% static 'safety/images/moon.png' %}" alt="Night" onerror="this.src='https://via.placeholder.com/30x30?text=🌙'">
             </div>
             <div class="stat-item">
-                <div class="score">{{ country.crime_score }}%</div>
+                <div class="score">{{ country.crime_score }}</div>
                 <div class="label">Crime</div>
                 <img src="{% static 'safety/images/prevention.png' %}" alt="prevention" onerror="this.src='https://via.placeholder.com/30x30?text=🛡️'">
             </div>
             <div class="stat-item">
-                <div class="score">{{ country.user_safety_score|floatformat:1 }}%</div>
+                <div class="score">{{ country.user_safety_score }}</div>
                 <div class="count">({{ country.rating_count }})</div>
                 <div class="label">User Rating</div>
                 <img src="{% static 'safety/images/prevention.png' %}" alt="prevention" onerror="this.src='https://via.placeholder.com/30x30?text=🛡️'">
-            </div>
+            </div> 
         </div>
         {% if user.is_authenticated and country.id %}
             <div class="user-rating-form">
@@ -452,6 +452,21 @@
         text-align: center;
         font-style: italic;
         color: #666;
+    }
+    .star-rating {
+        display: flex;
+        justify-content: center;
+        margin-top: 5px;
+    }
+    .star {
+        font-size: 18px;
+        margin: 0 2px;
+    }
+    .star-filled {
+        color: #f39c12;
+    }
+    .star-empty {
+        color: #ddd;
     }
 </style>
 

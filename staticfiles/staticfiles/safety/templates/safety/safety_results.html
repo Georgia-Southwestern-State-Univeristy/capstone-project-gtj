@@ -1,0 +1,539 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    {% if error %}
+        <div class="error-box">
+            <h3>{{ error }}</h3>
+            <p>Try searching for another country or check back later as we continue to add more destinations.</p>
+            <a href="{% url 'safety:safety_search' %}" class="back-btn">Back to Search</a>
+        </div>
+    {% elif country %}
+        <div class="header">
+            <!-- Country flag using correct 3-letter country code -->
+            <img src="https://flagsapi.com/{{ country.code|upper }}/flat/64.png" 
+                 onerror="this.src='https://via.placeholder.com/64x64?text={{ country.code }}'" 
+                 alt="{{ country.name }} flag">
+            <h2>{{ country.name }}</h2>
+        </div>
+    
+        <div class="stats">
+            <div class="stat-item">
+                <div class="score">{{ country.overall_safety_score }}%</div>
+                <div class="label">Overall Score</div>
+                <img src="{% static 'safety/images/check.png' %}" alt="Check" onerror="this.src='https://via.placeholder.com/30x30?text=✓'">
+            </div>
+            <div class="stat-item">
+                <div class="score">{{ country.women_safety_score }}%</div>
+                <div class="label">Women Safety</div>
+                <img src="{% static 'safety/images/woman.png' %}" alt="Woman" onerror="this.src='https://via.placeholder.com/30x30?text=👩'">
+            </div>
+            <div class="stat-item">
+                <div class="score">{{ country.night_safety_score }}%</div>
+                <div class="label">Night Safety</div>
+                <img src="{% static 'safety/images/moon.png' %}" alt="Night" onerror="this.src='https://via.placeholder.com/30x30?text=🌙'">
+            </div>
+            <div class="stat-item">
+                <div class="score">{{ country.crime_score }}%</div>
+                <div class="label">Crime</div>
+                <img src="{% static 'safety/images/prevention.png' %}" alt="prevention" onerror="this.src='https://via.placeholder.com/30x30?text=🛡️'">
+            </div>
+            <div class="stat-item">
+                <div class="score">{{ country.user_safety_score|floatformat:1 }}%</div>
+                <div class="count">({{ country.rating_count }})</div>
+                <div class="label">User Rating</div>
+                <img src="{% static 'safety/images/prevention.png' %}" alt="prevention" onerror="this.src='https://via.placeholder.com/30x30?text=🛡️'">
+            </div>
+        </div>
+        {% if user.is_authenticated and country.id %}
+            <div class="user-rating-form">
+                <h3>Rate this Country</h3>
+                <div class="star-rating">
+                    <span class="star" data-value="1">&#9733;</span>
+                    <span class="star" data-value="2">&#9733;</span>
+                    <span class="star" data-value="3">&#9733;</span>
+                    <span class="star" data-value="4">&#9733;</span>
+                    <span class="star" data-value="5">&#9733;</span>
+                </div>
+                <form id="rating-form" method="POST" action="{% url 'safety:rate_country' country.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="rating" id="rating-input">
+                    <textarea name="comment" id="comment" placeholder="Leave a comment (optional)" rows="4"></textarea>
+                    <button type="submit" class="submit-rating">Submit Rating</button>
+                </form>
+                <div class="rating-message" id="rating-message"></div>  
+            </div>
+            {% elif user.is_authenticated %}
+    <div class="login-prompt">
+        <p>This country cannot be rated at this time.</p>
+    </div>
+        {% else %}
+            <div class="login-prompt">
+                <p>Please <a href="{% url 'accounts:login' %}">log in</a> to rate this country.</p>
+            </div>
+        {% endif %}
+        <div class="content">
+            <h2>Is {{ country.name }} Safe? A Tourist's Guide to Safety and Security</h2>
+            
+            <div class="safety-section">
+                <h3>Overall Safety Assessment</h3>
+                <div class="section-content">
+                    {{ country.safety_summary|safe }}
+                </div>
+            </div>
+            
+            <div class="safety-section">
+                <h3>Is {{ country.name }} Safe for Women Travelers?</h3>
+                <div class="section-content">
+                    {{ country.women_safety_info|safe }}
+                </div>
+            </div>
+            
+            <div class="safety-section">
+                <h3>Is {{ country.name }} Safe at Night?</h3>
+                <div class="section-content">
+                    {{ country.night_safety_info|safe }}
+                </div>
+            </div>
+            
+            <div class="safety-section">
+                <h3>Is {{ country.name }} Safe for Solo Travelers?</h3>
+                <div class="section-content">
+                    {{ country.solo_traveler_info|safe }}
+                </div>
+            </div>
+            
+            <div class="safety-section">
+                <h3>Common Crimes and Scams That Tourists Should Be Aware Of</h3>
+                <div class="section-content">
+                    {{ country.crime_info|safe }}
+                </div>
+            </div>
+            
+            <div class="safety-section">
+                <h3>Is {{ country.name }}'s Public Transportation Safe?</h3>
+                <div class="section-content">
+                    {{ country.transportation_safety_info|safe }}
+                </div>
+            </div>
+            
+            <div class="safety-section emergency-numbers">
+                <h3>Important Emergency Numbers in {{ country.name }}</h3>
+                <div class="section-content">
+                    {{ country.emergency_numbers|safe }}
+                </div>
+            </div>
+            <div class="user-rating">
+                <h3>User Ratings and Comments</h3>
+                {% if country.user_ratings %}
+                    <ul class="rating-list">
+                        {% for rating in country.user_ratings %}
+                            <li class="rating-item">
+                                <div class="rating-header">
+                                    <span class="reviewer">{{ rating.user.username }}</span>
+                                    <span class="rating-stars">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= rating.rating %}
+                                                <span class="star star-filled">★</span>
+                                            {% else %}
+                                                <span class="star star-empty">★</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </span>
+                                    <span class="review-date">{{ rating.created_at|date:"F j, Y" }}</span>
+                                </div>
+                                {% if rating.comment %}
+                                    <p class="rating-comment">{{ rating.comment }}</p>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="no-reviews">No ratings yet. Be the first to rate!</p>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="error-box">
+            <h3>Please search for a country</h3>
+            <a href="{% url 'safety:safety_search' %}" class="back-btn">Back to Search</a>
+        </div>
+    {% endif %}
+    {% if not country.id %}
+        <div class="ai-disclaimer">
+            <p>The following information is a mixture of AI generated information and Human created information.</p>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    body {
+        background-color: rgb(249, 181, 172);
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        color: #333;
+        line-height: 1.6;
+    }
+    
+    .container {
+        max-width: 1000px;
+        margin: 20px auto;
+        padding: 20px;
+        border-radius: 10px;
+    }
+    
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 20px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    
+    .navbar a {
+        text-decoration: none;
+        color: black;
+        margin: 0 10px;
+    }
+    
+    .header {
+        display: flex;
+        align-items: center;
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .header img {
+        width: 64px;
+        height: 64px;
+        border-radius: 5px;
+        margin-right: 20px;
+        object-fit: contain;
+    }
+    
+    .header h2 {
+        margin: 0;
+        font-size: 2em;
+        color: #333;
+    }
+    
+    .country-image {
+        margin: 20px 0;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        background-color: white;
+    }
+    
+    .country-image img {
+        width: 100%;
+        height: auto;
+        display: block;
+        max-height: 400px;
+        object-fit: cover;
+    }
+    
+    .image-caption {
+        padding: 10px;
+        text-align: center;
+        color: #666;
+        margin: 0;
+    }
+    
+    .stats {
+        display: flex;
+        justify-content: space-between;
+        margin: 20px 0;
+        gap: 15px;
+    }
+    
+    .stat-item {
+        flex: 1;
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .score {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .label {
+        margin: 5px 0 10px;
+        color: #666;
+    }
+    
+    .stat-item img {
+        width: 40px;
+        height: 40px;
+        margin-top: 10px;
+    }
+    
+    .content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .content h2 {
+        color: #333;
+        margin-top: 0;
+        border-bottom: 2px solid rgb(249, 181, 172);
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .safety-content h3 {
+        color: #333;
+        margin-top: 0;
+        margin-bottom: 15px;
+    }
+    
+    .safety-section {
+        margin-bottom: 30px;
+        border-left: 4px solid rgb(249, 181, 172);
+        padding-left: 15px;
+    }
+    .section-content {
+        line-height: 1.6;
+    }
+    
+    .emergency-numbers {
+        background-color: #f8f8f8;
+        padding: 15px;
+        border-radius: 5px;
+        border-left: 4px solid #e38b8b;
+    }
+    
+    .error-box {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        text-align: center;
+        margin-top: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .back-btn {
+        display: inline-block;
+        background-color: #e38b8b;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        color: black;
+        font-weight: bold;
+        margin-top: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .stats {
+            flex-direction: column;
+        }
+        
+        .stat-item {
+            margin-bottom: 10px;
+        }
+    }
+    .star-rating {
+        display: flex;
+        cursor: pointer;
+        margin-bottom: 10px;
+    }
+    .star {
+        font-size: 30px;
+        color: #ccc;
+        margin-right: 5px;
+    }
+    .star.selected, .rating-stars .star-filled {
+        color: #f39c12;
+    }
+    .star-empty {
+        color: #ccc;
+    }
+    .user-rating {
+        margin-top: 30px;
+    }
+    .user-rating-form {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    #comment {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        box-sizing: border-box;
+    }
+    .submit-rating {
+        background-color: #e38b8b;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .rating-message {
+        margin-top: 10px;
+        font-weight: bold;
+    }
+    .rating-message.success {
+        color: green;
+    }
+    .rating-message.error {
+        color: red;
+    }
+    .login-prompt {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin-top: 20px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .rating-list {
+        list-style-type: none;
+        padding: 0;
+    }
+    .rating-item {
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    .rating-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .reviewer {
+        font-weight: bold;
+        margin-right: 10px;
+    }
+    .rating-stars {
+        margin-right: 10px;
+    }
+    .review-date {
+        font-size: 0.9em;
+        color: #999;
+        margin-left: auto;
+    }
+    .rating-comment {
+        margin: 0;
+    }
+    .no-reviews {
+        font-style: italic;
+        color: #999;
+    }
+    .ai-disclaimer {
+        background-color: #f8f8f8;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 20px;
+        text-align: center;
+        font-style: italic;
+        color: #666;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Star rating functionality
+    const stars = document.querySelectorAll('.star-rating .star');
+    const ratingInput = document.getElementById('rating-input');
+    
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const value = this.getAttribute('data-value');
+            ratingInput.value = value;
+            
+            // Update visual selection
+            stars.forEach(s => {
+                if (s.getAttribute('data-value') <= value) {
+                    s.classList.add('selected');
+                } else {
+                    s.classList.remove('selected');
+                }
+            });
+        });
+    });
+    
+    // Form submission
+    const ratingForm = document.getElementById('rating-form');
+    const ratingMessage = document.getElementById('rating-message');
+    
+    if (ratingForm) {
+        ratingForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!ratingInput.value) {
+                ratingMessage.textContent = 'Please select a rating';
+                ratingMessage.className = 'rating-message error';
+                return;
+            }
+            
+            const formData = new FormData(ratingForm);
+            
+            fetch(ratingForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    ratingMessage.textContent = data.message;
+                    ratingMessage.className = 'rating-message success';
+                    
+                    // Update displayed average rating if elements exist
+                    const ratingScore = document.querySelector('.stats .score');
+                    const ratingCount = document.querySelector('.stats .count');
+                    
+                    if (ratingScore && data.avg_rating) {
+                        ratingScore.textContent = parseFloat(data.avg_rating).toFixed(1) + '%';
+                    }
+                    
+                    if (ratingCount && data.count) {
+                        ratingCount.textContent = `(${data.count})`;
+                    }
+                    
+                    // Reload the page after 2 seconds to show the new review
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    ratingMessage.textContent = data.message || 'An error occurred';
+                    ratingMessage.className = 'rating-message error';
+                }
+            })
+            .catch(error => {
+                ratingMessage.textContent = 'An error occurred';
+                ratingMessage.className = 'rating-message error';
+                console.error('Error:', error);
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

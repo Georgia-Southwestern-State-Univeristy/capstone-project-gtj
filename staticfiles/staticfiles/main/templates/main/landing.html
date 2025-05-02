@@ -1,0 +1,72 @@
+
+{% extends 'base2.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'main/css/landingStyle.css' %}">
+{% endblock %}
+{% block content %}
+
+
+<div class="container py-5">
+  <div class="row login-container">
+    <div class="col-md-6 brand-section">
+      <div class="world-map-overlay"></div>
+      <div class="logo mb-4">
+        GTJ GO!
+      </div>
+      <div class="brand-title">Your Ultimate Travel Safety Companion</div>
+      <div class="brand-subtitle">Built by women for everyone</div>
+      <div class="brand-description">
+        <p><i class="fas fa-check-circle me-2"></i> Trusted safety scores for any destination</p>
+        <p><i class="fas fa-check-circle me-2"></i> Real-time local transportation routes</p>
+        <p><i class="fas fa-check-circle me-2"></i> Itinerary guides</p>
+        <p><i class="fas fa-check-circle me-2"></i> Currency and language conversion</p>
+      </div>
+      <div class="d-flex gap-3 mt-4">
+        <a href="{% url 'main:home' %}" class="btn btn-get-started"> Enter </a>
+        <a href="{% url 'main:about'%}" class="btn btn-outline-primary">Learn More</a>
+      </div>
+    </div>
+
+
+    <div class="col-md-6">
+      <div class="card shadow-lg">
+        <div class="card-body p-5">
+          <h2 class="text-center mb-4">Welcome</h2>
+          <p class="text-center mb-4 text-muted">Sign in to access your travel safety dashboard</p>
+
+          <form method="post" action="{% url 'accounts:login' %}">
+            {% csrf_token %}
+          
+            <div class="form-floating mb-4">
+              <input type="text" id="id_username"  name="username" class="form-control" placeholder="username" required />
+              <label for="id_username">Username</label>
+            </div>
+
+            <div class="form-floating mb-4">
+              <input type="password" id="id_password" name="password" class="form-control" placeholder="Password" required />
+              <label for="id_password">Password</label>
+            </div>
+
+            <div class="d-flex justify-content-between mb-4">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me" />
+                <label class="form-check-label" for="remember_me"> Remember me </label>
+              </div>
+              <a href="{% url 'accounts:password_reset' %}" class="text-primary">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100 mb-4">
+              <i class="fas fa-sign-in-alt me-2"></i> Sign in
+            </button>
+            <div class="text-center mt-4">
+              <p class="text-muted">Not a member? <a href="{% url 'accounts:signup' %}" class="text-primary fw-bold">Register now</a></p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
